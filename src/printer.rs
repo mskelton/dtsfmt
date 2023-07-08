@@ -1,14 +1,21 @@
 use tree_sitter::TreeCursor;
 
-fn get_text<'a>(source: &'a String, cursor: &mut TreeCursor) -> &'a str {
-    return cursor.node().utf8_text(source.as_bytes()).unwrap_or("");
-}
+use crate::{
+    context::Context,
+    parser::parse,
+    utils::{get_text, lookbehind, print_indent},
+};
 
-fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, indent: usize) {
+fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: &Context) {
     let node = cursor.node();
 
     match node.kind() {
         "comment" => {
+            // Add a newline before the comment if the previous node is not a comment
+            if lookbehind(cursor).map_or(false, |n| n.kind() != "comment") {
+                writer.push('\n');
+            }
+
             writer.push_str(get_text(source, cursor));
             writer.push('\n');
         }
@@ -26,9 +33,14 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, inden
             cursor.goto_first_child();
             writer.push_str("#define ");
 
-            while cursor.goto_next_sibling() && cursor.node().kind() != "\n" {
-                writer.push_str(get_text(source, cursor));
-            }
+            // Name
+            cursor.goto_next_sibling();
+            writer.push_str(get_text(source, cursor));
+            writer.push(' ');
+
+            // Value
+            cursor.goto_next_sibling();
+            writer.push_str(get_text(source, cursor));
 
             writer.push('\n');
             cursor.goto_parent();
@@ -37,35 +49,58 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, inden
             cursor.goto_first_child();
             writer.push_str("#define ");
 
-            while cursor.goto_next_sibling() {
+            // Function and args
+            for _ in 0..2 {
+                cursor.goto_next_sibling();
                 writer.push_str(get_text(source, cursor));
             }
+            writer.push(' ');
 
+            // Value
+            cursor.goto_next_sibling();
+            writer.push_str(get_text(source, cursor));
+
+            writer.push('\n');
             cursor.goto_parent();
         }
         "labeled_item" => {
             cursor.goto_first_child();
+            print_indent(writer, ctx);
             writer.push_str(get_text(source, cursor));
             writer.push_str(": ");
 
             while cursor.goto_next_sibling() {
-                traverse(writer, &source, cursor, indent);
+                traverse(writer, &source, cursor, ctx);
             }
+
+            cursor.goto_parent();
         }
         "node" => {
+            // If the previous node is a labeled_item, then the labeled_item will
+            // contain the indentation rather than the node.
+            if lookbehind(cursor).map_or(false, |n| n.kind() != ":") {
+                print_indent(writer, ctx);
+            }
+
             cursor.goto_first_child();
+
+            // Node name and opening
             writer.push_str(get_text(source, cursor));
             writer.push_str(" {\n");
 
+            // Node body
             while cursor.goto_next_sibling() {
-                traverse(writer, &source, cursor, indent + 1);
+                traverse(writer, &source, cursor, &ctx.inc(1));
             }
 
+            // Node closing
+            print_indent(writer, ctx);
             writer.push_str("};\n");
             cursor.goto_parent();
         }
         "property" => {
             cursor.goto_first_child();
+            print_indent(writer, ctx);
             writer.push_str(get_text(source, cursor));
 
             cursor.goto_next_sibling();
@@ -75,7 +110,7 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, inden
                 match cursor.node().kind() {
                     "," => writer.push_str(", "),
                     ";" => break,
-                    _ => traverse(writer, &source, cursor, 0),
+                    _ => traverse(writer, &source, cursor, &ctx.with_indent(0)),
                 }
             }
 
@@ -110,10 +145,10 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, inden
         }
         _ => {
             if cursor.goto_first_child() {
-                traverse(writer, &source, cursor, indent);
+                traverse(writer, &source, cursor, ctx);
 
                 while cursor.goto_next_sibling() {
-                    traverse(writer, &source, cursor, indent + 1);
+                    traverse(writer, &source, cursor, &ctx.inc(1));
                 }
 
                 cursor.goto_parent();
@@ -122,12 +157,23 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, inden
     };
 }
 
-pub fn format(source: String) -> String {
-    let mut buf = String::new();
-
-    let tree = crate::parser::parse(source.clone());
+pub fn print(source: String) -> String {
+    let mut writer = String::new();
+    let tree = parse(source.clone());
     let mut cursor = tree.walk();
+    let ctx = Context {
+        indent: 0,
+        keymap: false,
+    };
 
-    traverse(&mut buf, &source, &mut cursor, 0);
-    return buf;
+    // The first node is the root document node, so we have to traverse all it's
+    // children with the same indentation level.
+    cursor.goto_first_child();
+    traverse(&mut writer, &source, &mut cursor, &ctx);
+
+    while cursor.goto_next_sibling() {
+        traverse(&mut writer, &source, &mut cursor, &ctx);
+    }
+
+    return writer;
 }

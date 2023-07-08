@@ -1,5 +1,7 @@
-mod formatter;
+mod context;
 mod parser;
+mod printer;
+mod utils;
 
 use std::{fs, path::PathBuf};
 
@@ -20,7 +22,7 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
     let source = fs::read_to_string(cli.file_path).expect("Failed to read file");
-    let output = formatter::format(source);
+    let output = printer::print(source);
 
     print!("{}", output);
 }
