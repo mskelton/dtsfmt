@@ -1,23 +1,26 @@
-use tree_sitter::{Language, Parser, Tree};
+mod formatter;
+mod parser;
 
-extern "C" {
-    fn tree_sitter_devicetree() -> Language;
-}
+use std::{fs, path::PathBuf};
 
-fn parse(source: String) -> Tree {
-    let language = unsafe { tree_sitter_devicetree() };
-    let mut parser = Parser::new();
+use clap::Parser;
 
-    parser.set_language(language).unwrap();
-    return parser.parse(source, None).unwrap();
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+struct Cli {
+    /// Check for formatting errors without writing to the file
+    #[arg(long)]
+    check: bool,
+
+    /// The file to format
+    #[arg(index = 1, value_name = "FILE")]
+    file_path: PathBuf,
 }
 
 fn main() {
-    let source = String::from("#include <hi.dtsi>");
-    let tree = parse(source);
-    let root_node = tree.root_node();
+    let cli = Cli::parse();
+    let source = fs::read_to_string(cli.file_path).expect("Failed to read file");
+    let output = formatter::format(source);
 
-    assert_eq!(root_node.kind(), "document");
-    assert_eq!(root_node.start_position().column, 0);
-    assert_eq!(root_node.end_position().column, 18);
+    print!("{}", output);
 }
