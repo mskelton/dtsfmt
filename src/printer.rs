@@ -193,6 +193,9 @@ fn print_bindings(writer: &mut String, source: &String, cursor: &mut TreeCursor,
     let mut index = 0;
     let mut buf = String::new();
 
+    // TODO: Use lookahead to determine the column size
+    let size = 22;
+
     while cursor.goto_next_sibling() {
         match cursor.node().kind() {
             ">" => break,
@@ -212,7 +215,7 @@ fn print_bindings(writer: &mut String, source: &String, cursor: &mut TreeCursor,
                     // Don't add padding to the last binding in the row
                     let padding = match hit_breakpoint {
                         true => 0,
-                        false => 20 * (col_span + 1),
+                        false => size * (col_span + 1),
                     };
 
                     // Flush the buffer
