@@ -1,9 +1,10 @@
+use serde::{Deserialize, Serialize};
+
 mod adv360;
 
-#[derive(clap::ValueEnum, Clone, Debug)]
+#[derive(Serialize, Deserialize)]
 pub enum KeyboardLayoutType {
-    /// Kinesis Advantage 360
-    #[clap(name = "kinesis:adv360")]
+    #[serde(rename = "kinesis:adv360")]
     Adv360,
 }
 

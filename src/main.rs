@@ -15,7 +15,6 @@ use std::{
 use clap::Parser;
 use config::Filename;
 use emitter::{Emitter, FormattedFile};
-use layouts::KeyboardLayoutType;
 
 /// What dtsfmt should emit. Mostly corresponds to the `--emit` command line
 /// option.
@@ -45,11 +44,20 @@ struct Cli {
 
 fn main() {
     let cli = Cli::parse();
+
     let filename = match cli.file_path {
         Some(file) => Filename::Real(file.clone()),
         None => Filename::Stdin,
     };
 
+    // If the file is real, we can read from it's directory to find the config
+    // file. If it's stdin, we can't, so we just use the current directory.
+    let config_path = match &filename {
+        Filename::Real(path) => path.to_path_buf(),
+        Filename::Stdin => std::env::current_dir().unwrap(),
+    };
+
+    let config = config::Config::parse(&config_path);
     let source = match &filename {
         Filename::Real(path) => fs::read_to_string(&path).expect("Failed to read file"),
         Filename::Stdin => {
@@ -63,7 +71,7 @@ fn main() {
         }
     };
 
-    let layout = layouts::get_layout(cli.layout);
+    let layout = layouts::get_layout(config.layout);
     let output = printer::print(&source, &layout);
     let result = FormattedFile {
         filename: &filename,
