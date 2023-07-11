@@ -3,7 +3,7 @@ use tree_sitter::TreeCursor;
 use crate::{
     context::Context,
     parser::parse,
-    utils::{get_text, lookbehind, print_indent},
+    utils::{get_text, lookbehind, pad_right, print_indent},
 };
 
 fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: &Context) {
@@ -85,12 +85,22 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: 
             cursor.goto_first_child();
 
             // Node name and opening
-            writer.push_str(get_text(source, cursor));
+            let name = get_text(source, cursor);
+            writer.push_str(name);
             writer.push_str(" {\n");
 
             // Node body
             while cursor.goto_next_sibling() {
-                traverse(writer, &source, cursor, &ctx.inc(1));
+                let ctx = ctx.inc(1);
+
+                // When we find the keymap node, we need to set the keymap flag
+                // so we can properly print the binding cells.
+                let ctx = match name {
+                    "keymap" => ctx.keymap(),
+                    _ => ctx,
+                };
+
+                traverse(writer, &source, cursor, &ctx);
             }
 
             // Node closing
@@ -101,16 +111,26 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: 
         "property" => {
             cursor.goto_first_child();
             print_indent(writer, ctx);
-            writer.push_str(get_text(source, cursor));
+
+            let name = get_text(source, cursor);
+            writer.push_str(name);
 
             cursor.goto_next_sibling();
             writer.push_str(" = ");
 
             while cursor.goto_next_sibling() {
+                // When we are inside a bindings node, we want to increase the
+                // indentation level and print the bindings according to the
+                // keyboard layout.
+                let ctx = match name {
+                    "bindings" => ctx.inc(1).bindings(),
+                    _ => ctx.with_indent(0),
+                };
+
                 match cursor.node().kind() {
                     "," => writer.push_str(", "),
                     ";" => break,
-                    _ => traverse(writer, &source, cursor, &ctx.with_indent(0)),
+                    _ => traverse(writer, &source, cursor, &ctx),
                 }
             }
 
@@ -122,9 +142,16 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: 
         }
         "integer_cells" => {
             cursor.goto_first_child();
-            writer.push('<');
 
+            // Keymap bindings are a special snowflake
+            if ctx.keymap && ctx.bindings {
+                print_bindings(writer, source, cursor, ctx);
+                return;
+            }
+
+            writer.push('<');
             let mut first = true;
+
             while cursor.goto_next_sibling() {
                 match cursor.node().kind() {
                     ">" => break,
@@ -157,12 +184,63 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: 
     };
 }
 
+fn print_bindings(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: &Context) {
+    cursor.goto_first_child();
+    writer.push_str("<\n");
+    print_indent(writer, ctx);
+
+    let mut index = 0;
+    let mut buf = String::new();
+    let breakpoints = vec![14, 28, 46, 56, 80];
+
+    while cursor.goto_next_sibling() {
+        match cursor.node().kind() {
+            ">" => break,
+            _ => {
+                let text = get_text(source, cursor).trim();
+                if !buf.is_empty() && text.starts_with("&") {
+                    index += 1;
+                    let hit_breakpoint = breakpoints.contains(&index);
+
+                    // Don't add padding to the last binding in the row
+                    let padding = match hit_breakpoint {
+                        true => 0,
+                        false => 20,
+                    };
+
+                    // Flush the buffer
+                    writer.push_str(&pad_right(&buf.trim(), padding));
+
+                    // After flushing the buffer to the writer, we need to
+                    // clear it for the next binding.
+                    buf.clear();
+
+                    // Add a newline if we are at a breakpoint
+                    if hit_breakpoint {
+                        writer.push('\n');
+                        print_indent(writer, ctx);
+                    }
+                }
+
+                buf.push_str(text);
+                buf.push(' ');
+            }
+        }
+    }
+
+    writer.push('\n');
+    print_indent(writer, &ctx.dec(1));
+    writer.push('>');
+    cursor.goto_parent();
+}
+
 pub fn print(source: &String) -> String {
     let mut writer = String::new();
     let tree = parse(source.clone());
     let mut cursor = tree.walk();
     let ctx = Context {
         indent: 0,
+        bindings: false,
         keymap: false,
     };
 

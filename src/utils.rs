@@ -33,3 +33,7 @@ pub fn get_text<'a>(source: &'a String, cursor: &mut TreeCursor) -> &'a str {
         .unwrap_or("")
         .trim();
 }
+
+pub fn pad_right(string: &str, size: usize) -> String {
+    format!("{:width$}", string, width = size)
+}
