@@ -2,6 +2,7 @@ use tree_sitter::TreeCursor;
 
 use crate::{
     context::Context,
+    layouts::KeyboardLayout,
     parser::parse,
     utils::{get_text, lookbehind, pad_right, print_indent},
 };
@@ -191,7 +192,6 @@ fn print_bindings(writer: &mut String, source: &String, cursor: &mut TreeCursor,
 
     let mut index = 0;
     let mut buf = String::new();
-    let breakpoints = vec![14, 28, 46, 56, 80];
 
     while cursor.goto_next_sibling() {
         match cursor.node().kind() {
@@ -199,13 +199,20 @@ fn print_bindings(writer: &mut String, source: &String, cursor: &mut TreeCursor,
             _ => {
                 let text = get_text(source, cursor).trim();
                 if !buf.is_empty() && text.starts_with("&") {
+                    // Determine the column span of the current binding from
+                    // the specified keyboard layout.
+                    let col_span = ctx.layout.bindings.get(index).unwrap_or(&0);
+
+                    // Determine if the current binding is the last key in the row
+                    let hit_breakpoint = ctx.layout.breakpoints.contains(&index);
+
+                    // Increment the index since this is the start of a new key
                     index += 1;
-                    let hit_breakpoint = breakpoints.contains(&index);
 
                     // Don't add padding to the last binding in the row
                     let padding = match hit_breakpoint {
                         true => 0,
-                        false => 20,
+                        false => 20 * (col_span + 1),
                     };
 
                     // Flush the buffer
@@ -222,26 +229,34 @@ fn print_bindings(writer: &mut String, source: &String, cursor: &mut TreeCursor,
                     }
                 }
 
+                // Add the current piece of text to the buffer
                 buf.push_str(text);
                 buf.push(' ');
             }
         }
     }
 
+    // Flush the final buffer
+    writer.push_str(&buf.trim());
+
+    // Close the bindings
     writer.push('\n');
     print_indent(writer, &ctx.dec(1));
     writer.push('>');
+
     cursor.goto_parent();
 }
 
-pub fn print(source: &String) -> String {
+pub fn print(source: &String, layout: &KeyboardLayout) -> String {
     let mut writer = String::new();
     let tree = parse(source.clone());
     let mut cursor = tree.walk();
+
     let ctx = Context {
         indent: 0,
         bindings: false,
         keymap: false,
+        layout,
     };
 
     // The first node is the root document node, so we have to traverse all it's

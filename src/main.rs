@@ -1,6 +1,7 @@
 mod config;
 mod context;
 mod emitter;
+mod layouts;
 mod parser;
 mod printer;
 mod utils;
@@ -14,6 +15,7 @@ use std::{
 use clap::Parser;
 use config::Filename;
 use emitter::{Emitter, FormattedFile};
+use layouts::KeyboardLayoutType;
 
 /// What dtsfmt should emit. Mostly corresponds to the `--emit` command line
 /// option.
@@ -28,6 +30,10 @@ enum EmitMode {
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
+    /// The keyboard layout to use
+    #[arg(long, default_value = "adv360")]
+    layout: KeyboardLayoutType,
+
     /// Check for formatting errors without writing to the file
     #[arg(long)]
     check: bool,
@@ -61,7 +67,8 @@ fn main() {
         }
     };
 
-    let output = printer::print(&source);
+    let layout = layouts::get_layout(cli.layout);
+    let output = printer::print(&source, &layout);
     let result = FormattedFile {
         filename: &filename,
         original_text: &source,

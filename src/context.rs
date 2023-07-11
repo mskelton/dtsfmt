@@ -1,16 +1,15 @@
-pub struct Context {
+use crate::layouts::KeyboardLayout;
+
+pub struct Context<'a> {
     pub indent: usize,
     pub keymap: bool,
     pub bindings: bool,
+    pub layout: &'a KeyboardLayout,
 }
 
-impl Context {
+impl<'a> Context<'a> {
     pub fn with_indent(&self, indent: usize) -> Self {
-        Self {
-            indent,
-            keymap: self.keymap,
-            bindings: self.bindings,
-        }
+        Self { indent, ..*self }
     }
 
     pub fn inc(&self, increment: usize) -> Self {
