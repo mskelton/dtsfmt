@@ -16,13 +16,29 @@ pub fn lookbehind<'a>(cursor: &'a TreeCursor) -> Option<Node<'a>> {
     })
 }
 
-pub fn _lookahead<'a>(cursor: &'a TreeCursor) -> Option<Node<'a>> {
-    cursor.node().next_sibling()
+pub fn lookahead<'a>(cursor: &'a TreeCursor) -> Option<Node<'a>> {
+    cursor.node().next_sibling().or_else(|| {
+        // If the next sibling is not found, we traverse up the tree to the
+        // parent, find the current location of the node, and then find the
+        // next sibling of the node.
+        cursor.node().parent().and_then(|parent| {
+            let mut cur = cursor.clone();
+            cur.reset(parent);
+
+            return parent.children(&mut cur).find(|n| n.eq(&cursor.node()));
+        })
+    })
 }
 
 pub fn print_indent(writer: &mut String, ctx: &Context) {
     if let Ok(size) = ctx.indent.try_into() {
         writer.push_str("  ".repeat(size).as_str());
+    }
+}
+
+pub fn sep(writer: &mut String) {
+    if !writer.ends_with("\n\n") {
+        writer.push('\n');
     }
 }
 

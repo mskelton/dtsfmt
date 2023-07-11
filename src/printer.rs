@@ -4,7 +4,7 @@ use crate::{
     context::Context,
     layouts::KeyboardLayout,
     parser::parse,
-    utils::{get_text, lookbehind, pad_right, print_indent},
+    utils::{get_text, lookahead, lookbehind, pad_right, print_indent, sep},
 };
 
 fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: &Context) {
@@ -14,14 +14,16 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: 
         "comment" => {
             // Add a newline before the comment if the previous node is not a comment
             if lookbehind(cursor).map_or(false, |n| n.kind() != "comment") {
-                writer.push('\n');
+                sep(writer);
             }
 
+            print_indent(writer, ctx);
             writer.push_str(get_text(source, cursor));
             writer.push('\n');
         }
         "preproc_include" => {
             cursor.goto_first_child();
+            print_indent(writer, ctx);
             writer.push_str("#include ");
 
             cursor.goto_next_sibling();
@@ -29,6 +31,11 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: 
             writer.push('\n');
 
             cursor.goto_parent();
+
+            // Add a newline if this is the last include
+            if lookahead(cursor).map_or(false, |n| n.kind() != "preproc_include") {
+                writer.push('\n');
+            }
         }
         "preproc_def" => {
             cursor.goto_first_child();
