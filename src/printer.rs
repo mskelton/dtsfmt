@@ -157,7 +157,7 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: 
     };
 }
 
-pub fn print(source: String) -> String {
+pub fn print(source: &String) -> String {
     let mut writer = String::new();
     let tree = parse(source.clone());
     let mut cursor = tree.walk();
