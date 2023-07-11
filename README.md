@@ -5,58 +5,58 @@ Auto formatter for device tree files.
 ## Installation
 
 You can install dtsfmt by running the install script which will download
-the [latest release](https://github.com/mskelton/flashlight/releases/latest).
+the [latest release](https://github.com/mskelton/dtsfmt/releases/latest).
 
 ```bash
-curl -LSfs https://mskelton.dev/flashlight/install | sh
+curl -LSfs https://mskelton.dev/dtsfmt/install | sh
 ```
 
 Or you can build from source.
 
 ```bash
-git clone git@github.com:mskelton/flashlight.git
-cd flashlight
+git clone git@github.com:mskelton/dtsfmt.git
+cd dtsfmt
 cargo install --path .
 ```
 
 ## Usage
 
-### Find all imports
-
-To find all imports for a given import source (e.g., `react`), run flashlight
-with just the `--source` command.
+To run dtsfmt, simply provide a file/directory path to the `dtsfmt` command.
 
 ```bash
-flashlight --source react
+dtsfmt .
 ```
 
-### Find imported symbols by name
+## Config
 
-Finding all imports of a given source is useful, but more useful is to search
-for specific symbols.
+The following confirmation options are available for dtsfmt. Confirmation should
+be added to a `.dtsfmtrc.toml` file at the root of your project.
 
-```bash
-flashlight --source react --name useState
+```toml
+layout = "kinesis:adv360"
 ```
 
-## Change working directory
+## Ignoring code
 
-By default, flashlight uses the current working directory to search. You can
-change the working directory using the `--cwd` argument.
+You can add a `.dtsfmtignore` file at the root of your project to exclude files
+and paths from formatting. This file follows the same rules as `.gitignore`.
+
+## Flags
+
+### `--check`
+
+When you want to check if your files are formatted, you can run dtsfmt with
+the `--check` flag (or `-c`). This will output a human-friendly message and a
+list of unformatted files, if any.
 
 ```bash
-flashlight --source react --cwd ./packages/a
+dtsfmt --check .
 ```
 
-### Format
+### `--emit`
 
-You can customize the output format based on your use case. The supported
-formats are:
-
-- `default` - The default console format
-- `json` - Formats the output as JSON
-- `quickfix` - Formats the output as a Vim quickfix list (alias `vi`)
+You can change the way dtsfmt emits the changes with the `--emit` flag.
 
 ```bash
-flashlight --source react --format json
+dtsfmt --emit=stdout
 ```

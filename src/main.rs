@@ -30,12 +30,8 @@ enum EmitMode {
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
-    /// The keyboard layout to use
-    #[arg(long, default_value = "kinesis:adv360")]
-    layout: KeyboardLayoutType,
-
     /// Check for formatting errors without writing to the file
-    #[arg(long)]
+    #[arg(long, short)]
     check: bool,
 
     /// How to emit the results
