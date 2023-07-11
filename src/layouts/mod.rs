@@ -2,7 +2,8 @@ mod adv360;
 
 #[derive(clap::ValueEnum, Clone, Debug)]
 pub enum KeyboardLayoutType {
-    /// Kenesis Advantage 360
+    /// Kinesis Advantage 360
+    #[clap(name = "kinesis:adv360")]
     Adv360,
 }
 
