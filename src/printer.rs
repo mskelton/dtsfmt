@@ -18,7 +18,18 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: 
             }
 
             print_indent(writer, ctx);
-            writer.push_str(get_text(source, cursor));
+            let comment = get_text(source, cursor);
+
+            // Only reformat single line comments, multi line comments are a
+            // lot tougher to format properly.
+            match comment.starts_with("//") {
+                true => {
+                    writer.push_str("// ");
+                    writer.push_str(comment.trim_start_matches("//").trim());
+                }
+                false => writer.push_str(comment),
+            }
+
             writer.push('\n');
         }
         "preproc_include" => {
@@ -144,6 +155,11 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: 
 
             writer.push_str(";\n");
             cursor.goto_parent();
+
+            // Add a newline if the next item is a node
+            if lookahead(cursor).map_or(false, |n| n.kind() == "node") {
+                writer.push('\n');
+            }
         }
         "string_literal" => {
             writer.push_str(get_text(source, cursor));
