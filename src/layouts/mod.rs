@@ -10,7 +10,13 @@ pub enum KeyboardLayoutType {
 
 pub struct KeyboardLayout {
     pub bindings: Vec<usize>,
-    pub breakpoints: Vec<usize>,
+    pub row_count: usize,
+}
+
+impl KeyboardLayout {
+    pub fn row_size(&self) -> usize {
+        self.bindings.len() / self.row_count
+    }
 }
 
 pub fn get_layout(layout_type: KeyboardLayoutType) -> KeyboardLayout {
