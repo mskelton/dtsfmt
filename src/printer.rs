@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use tree_sitter::TreeCursor;
 
 use crate::{
@@ -208,62 +210,94 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: 
     };
 }
 
-fn print_bindings(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: &Context) {
-    cursor.goto_first_child();
-    writer.push_str("<\n");
-    print_indent(writer, ctx);
-
-    let mut index = 0;
-    let mut buf = String::new();
-
-    // TODO: Use lookahead to determine the column size
-    let size = 22;
+fn collect_bindings(cursor: &mut TreeCursor, source: &String, ctx: &Context) -> VecDeque<String> {
+    let mut buf: VecDeque<String> = VecDeque::new();
+    let mut item = String::new();
 
     while cursor.goto_next_sibling() {
         match cursor.node().kind() {
             ">" => break,
             _ => {
                 let text = get_text(source, cursor).trim();
-                if !buf.is_empty() && text.starts_with("&") {
-                    // Determine the column span of the current binding from
-                    // the specified keyboard layout.
-                    let col_span = ctx.layout.bindings.get(index).unwrap_or(&0);
 
-                    // Determine if the current binding is the last key in the row
-                    let hit_breakpoint = ctx.layout.breakpoints.contains(&index);
+                // If this is a new binding, add a new item to the buffer
+                if !item.is_empty() && text.starts_with("&") {
+                    buf.push_back(item);
+                    item = String::new();
+                }
 
-                    // Increment the index since this is the start of a new key
-                    index += 1;
-
-                    // Don't add padding to the last binding in the row
-                    let padding = match hit_breakpoint {
-                        true => 0,
-                        false => size * (col_span + 1),
-                    };
-
-                    // Flush the buffer
-                    writer.push_str(&pad_right(&buf.trim(), padding));
-
-                    // After flushing the buffer to the writer, we need to
-                    // clear it for the next binding.
-                    buf.clear();
-
-                    // Add a newline if we are at a breakpoint
-                    if hit_breakpoint {
-                        writer.push('\n');
-                        print_indent(writer, ctx);
-                    }
+                // Add a space between each piece of text
+                if !item.is_empty() {
+                    item.push(' ');
                 }
 
                 // Add the current piece of text to the buffer
-                buf.push_str(text);
-                buf.push(' ');
+                item.push_str(text);
             }
         }
     }
 
-    // Flush the final buffer
-    writer.push_str(&buf.trim());
+    // Add the last item to the buffer
+    buf.push_back(item);
+
+    // Move the items from the temporary buffer into a new vector that contains
+    // the empty key spaces.
+    ctx.layout
+        .bindings
+        .iter()
+        .map(|is_key| match is_key {
+            1 => buf.pop_front().unwrap_or(String::new()),
+            _ => String::new(),
+        })
+        .collect()
+}
+
+/// Calculate the maximum size of each column in the bindings table.
+fn calculate_sizes(buf: &VecDeque<String>, row_size: usize) -> Vec<usize> {
+    let mut sizes = Vec::new();
+
+    for i in 0..row_size {
+        let mut max = 0;
+
+        for j in (i..buf.len()).step_by(row_size) {
+            let len = buf[j].len();
+
+            if len > max {
+                max = len;
+            }
+        }
+
+        sizes.push(max);
+    }
+
+    sizes
+}
+
+fn print_bindings(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: &Context) {
+    cursor.goto_first_child();
+    writer.push_str("<");
+
+    let buf = collect_bindings(cursor, source, ctx);
+    let row_size = ctx.layout.row_size();
+    let sizes = calculate_sizes(&buf, row_size);
+
+    buf.iter().enumerate().for_each(|(i, item)| {
+        let col = i % row_size;
+
+        // Add a newline at the start of each row
+        if col == 0 {
+            writer.push('\n');
+            print_indent(writer, ctx);
+        }
+
+        // Don't add padding to the last binding in the row
+        let padding = match (i + 1) % row_size == 0 {
+            true => 0,
+            false => sizes[col] + 3,
+        };
+
+        writer.push_str(&pad_right(&item, padding));
+    });
 
     // Close the bindings
     writer.push('\n');
