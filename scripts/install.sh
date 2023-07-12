@@ -58,7 +58,7 @@ get_tmpfile() {
 		printf "%s.%s" "$(mktemp)" "${suffix}"
 	else
 		# No really good options here--let's pick a default + hope
-		printf "/tmp/flashlight.%s" "${suffix}"
+		printf "/tmp/dtsmft.%s" "${suffix}"
 	fi
 }
 
@@ -93,10 +93,10 @@ download() {
 
 	error "Command failed (exit code $rc): ${BLUE}${cmd}${NO_COLOR}"
 	printf "\n" >&2
-	info "This is likely due to Flashlight not yet supporting your configuration."
+	info "This is likely due to dtsmft not yet supporting your configuration."
 	info "If you would like to see a build for your configuration,"
 	info "please create an issue requesting a build for ${MAGENTA}${TARGET}${NO_COLOR}:"
-	info "${BOLD}${UNDERLINE}https://github.com/mskelton/flashlight/issues/new/${NO_COLOR}"
+	info "${BOLD}${UNDERLINE}https://github.com/mskelton/dtsmft/issues/new/${NO_COLOR}"
 	return $rc
 }
 
@@ -121,7 +121,7 @@ unpack() {
 	error "Unknown package extension."
 	printf "\n"
 	info "This almost certainly results from a bug in this script--please file a"
-	info "bug report at https://github.com/mskelton/flashlight/issues"
+	info "bug report at https://github.com/mskelton/dtsmft/issues"
 	return 1
 }
 
@@ -129,7 +129,7 @@ usage() {
 	printf "%s\n" \
 		"install.sh [option]" \
 		"" \
-		"Fetch and install the latest version of flashlight, if flashlight is already" \
+		"Fetch and install the latest version of dtsmft, if dtsmft is already" \
 		"installed it will be updated to the latest version."
 
 	printf "\n%s\n" "Options"
@@ -163,12 +163,12 @@ install() {
 
 	if test_writeable "${BIN_DIR}"; then
 		sudo=""
-		msg="Installing Flashlight, please wait…"
+		msg="Installing dtsmft, please wait…"
 	else
 		warn "Escalated permissions are required to install to ${BIN_DIR}"
 		elevate_priv
 		sudo="sudo"
-		msg="Installing Flashlight as root, please wait…"
+		msg="Installing dtsmft as root, please wait…"
 	fi
 
 	info "$msg"
@@ -291,11 +291,11 @@ is_build_available() {
 	)
 
 	if [ "${good}" != "1" ]; then
-		error "${arch} builds for ${platform} are not yet available for Flashlight"
+		error "${arch} builds for ${platform} are not yet available for dtsmft"
 		printf "\n" >&2
 		info "If you would like to see a build for your configuration,"
 		info "please create an issue requesting a build for ${MAGENTA}${target}${NO_COLOR}:"
-		info "${BOLD}${UNDERLINE}https://github.com/mskelton/flashlight/issues/new/${NO_COLOR}"
+		info "${BOLD}${UNDERLINE}https://github.com/mskelton/dtsmft/issues/new/${NO_COLOR}"
 		printf "\n"
 		exit 1
 	fi
@@ -315,7 +315,7 @@ if [ -z "${ARCH-}" ]; then
 fi
 
 if [ -z "${BASE_URL-}" ]; then
-	BASE_URL="https://github.com/mskelton/flashlight/releases"
+	BASE_URL="https://github.com/mskelton/dtsmft/releases"
 fi
 
 # Non-POSIX shells can break once executing code due to semantic differences
@@ -408,10 +408,10 @@ if [ "${PLATFORM}" = "pc-windows-msvc" ]; then
 	EXT=zip
 fi
 
-URL="${BASE_URL}/latest/download/flashlight-${TARGET}.${EXT}"
+URL="${BASE_URL}/latest/download/dtsmft-${TARGET}.${EXT}"
 info "Tarball URL: ${UNDERLINE}${BLUE}${URL}${NO_COLOR}"
-confirm "Install Flashlight ${GREEN}latest${NO_COLOR} to ${BOLD}${GREEN}${BIN_DIR}${NO_COLOR}?"
+confirm "Install dtsmft ${GREEN}latest${NO_COLOR} to ${BOLD}${GREEN}${BIN_DIR}${NO_COLOR}?"
 check_bin_dir "${BIN_DIR}"
 
 install "${EXT}"
-completed "Flashlight installed"
+completed "dtsmft installed"
