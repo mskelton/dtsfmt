@@ -50,17 +50,19 @@ pub fn run_specs(directory_path: &Path) {
     for spec in specs {
         let result = print(&spec.file_text, KeyboardLayoutType::Adv360);
 
-        failed_tests.push(FailedTestResult {
-            expected: spec.expected_text.clone(),
-            actual: result,
-            message: spec.message.clone(),
-        });
+        if result != spec.expected_text {
+            failed_tests.push(FailedTestResult {
+                expected: spec.expected_text.clone(),
+                actual: result,
+                message: spec.message.clone(),
+            });
+        }
     }
 
     for failed_test in &failed_tests {
         println!("---");
         println!(
-            "Failed:   {}\nExpected: `{:?}`,\nActual:   `{:?}`,`,\nDiff:\n{}",
+            "Failed:   {}\nExpected: `{:?}`\nActual:   `{:?}`\nDiff:\n{}",
             failed_test.message,
             failed_test.expected,
             failed_test.actual,
