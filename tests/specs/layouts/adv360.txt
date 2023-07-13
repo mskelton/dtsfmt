@@ -1,0 +1,82 @@
+== should should reformat badly formatted code ==
+/ {
+behaviors { dm: dual_mod_key {
+      bindings = <  &kp  >,
+      <
+        &kp  >;
+    }; };
+
+  keymap {
+    compatible = "zmk,keymap";
+    
+
+
+    default_layer {
+      bindings = < &macro_triple_grave &kp N1 &kp N2 &kp N3 &kp N4 &kp N5 &mo MOD &kp C_VOL_UP &kp N6 &kp N7 &kp N8 &kp N9 &kp N0 &kp LA(LG(I)) &kp TAB &kp Q &kp W &kp E &kp R &kp T &caps_word &kp C_VOL_DN &kp Y &kp U &kp I &kp O &kp P &kp BSLH &kp CAPS &kp A &kp S &kp D &kp F &kp G &kp LS(LC(LA(LGUI))) &kp LG(LA(C)) &kp LG(LS(V)) &kp LA(LS(LC(M))) &none &kp LS(LC(LALT)) &kp H &kp J &kp K &kp L &kp SEMI &kp SQT &kp LSHFT &dm LCTRL Z &dm LALT X &kp C &kp V &kp B &none &none &kp N &kp M &kp COMMA &kp DOT &kp FSLH &kp RSHFT &kp GRAVE &kp LC(SPACE) &none &kp LG(SPACE) &mo ARROWS &kp SPACE &kp LGUI &mo WINDOW &none &kp ENTER &kp BSPC &kp MINUS &kp EQUAL &kp LBKT &kp RBKT &kp RCTRL >;
+    };
+  }; };
+
+[expect]
+/ {
+  behaviors {
+    dm: dual_mod_key {
+      bindings = <&kp>, <&kp>;
+    };
+  };
+  keymap {
+    compatible = "zmk,keymap";
+
+    default_layer {
+      bindings = <
+        &macro_triple_grave   &kp N1          &kp N2       &kp N3          &kp N4       &kp N5   &mo MOD                                                                                                       &kp C_VOL_UP       &kp N6   &kp N7      &kp N8      &kp N9     &kp N0     &kp LA(LG(I))
+        &kp TAB               &kp Q           &kp W        &kp E           &kp R        &kp T    &caps_word                                                                                                    &kp C_VOL_DN       &kp Y    &kp U       &kp I       &kp O      &kp P      &kp BSLH
+        &kp CAPS              &kp A           &kp S        &kp D           &kp F        &kp G    &kp LS(LC(LA(LGUI)))               &kp LG(LA(C))   &kp LG(LS(V))   &kp LA(LS(LC(M)))   &none                  &kp LS(LC(LALT))   &kp H    &kp J       &kp K       &kp L      &kp SEMI   &kp SQT
+        &kp LSHFT             &dm LCTRL Z     &dm LALT X   &kp C           &kp V        &kp B                                                       &none           &none                                                         &kp N    &kp M       &kp COMMA   &kp DOT    &kp FSLH   &kp RSHFT
+        &kp GRAVE             &kp LC(SPACE)   &none        &kp LG(SPACE)   &mo ARROWS                                   &kp SPACE   &kp LGUI        &mo WINDOW      &none               &kp ENTER   &kp BSPC                               &kp MINUS   &kp EQUAL   &kp LBKT   &kp RBKT   &kp RCTRL
+      >;
+    };
+  };
+};
+
+== should auto size columns ==
+/ {
+  behaviors {
+    dm: dual_mod_key {
+      bindings = <&kp>, <&kp>;
+    };
+  };
+  keymap {
+    compatible = "zmk,keymap";
+    default_layer {
+      bindings = <
+        &macro_triple_grave &kp N1 &kp N2 &kp N3 &kp N4 &kp N5 &mo MOD &kp C_VOL_UP &kp N6 &kp N7 &kp N8 &kp N9 &kp N0 &kp LA(LG(I))
+        &kp TAB &kp Q &kp W &kp E &kp R &kp T &caps_word &kp C_VOL_DN &kp Y &kp U &kp I &kp O &kp P &kp BSLH
+        &kp CAPS &kp A &kp S &kp D &kp F &kp G &kp LS(LC(LA(LGUI))) &kp LG(LA(C)) &kp LG(LS(V)) &kp LA(LS(LC(M))) &none &kp LS(LC(LALT)) &kp H &kp J &kp K &kp L &kp SEMI &kp SQT
+        &kp LSHFT &dm LCTRL Z &dm LALT X &kp C &kp V &kp B &none &none &kp N &kp M &kp COMMA &kp DOT &kp FSLH &kp RSHFT
+        &kp GRAVE &kp LC(SPACE) &none &kp LG(SPACE) &mo ARROWS &kp SPACE &kp LGUI &mo WINDOW &none &kp ENTER &kp BSPC &kp MINUS &kp EQUAL &kp LBKT &kp RBKT &kp RCTRL
+      >;
+    };
+  };
+};
+
+[expect]
+/ {
+  behaviors {
+    dm: dual_mod_key {
+      bindings = <&kp>, <&kp>;
+    };
+  };
+  keymap {
+    compatible = "zmk,keymap";
+
+    default_layer {
+      bindings = <
+        &macro_triple_grave   &kp N1          &kp N2       &kp N3          &kp N4       &kp N5   &mo MOD                                                                                                       &kp C_VOL_UP       &kp N6   &kp N7      &kp N8      &kp N9     &kp N0     &kp LA(LG(I))
+        &kp TAB               &kp Q           &kp W        &kp E           &kp R        &kp T    &caps_word                                                                                                    &kp C_VOL_DN       &kp Y    &kp U       &kp I       &kp O      &kp P      &kp BSLH
+        &kp CAPS              &kp A           &kp S        &kp D           &kp F        &kp G    &kp LS(LC(LA(LGUI)))               &kp LG(LA(C))   &kp LG(LS(V))   &kp LA(LS(LC(M)))   &none                  &kp LS(LC(LALT))   &kp H    &kp J       &kp K       &kp L      &kp SEMI   &kp SQT
+        &kp LSHFT             &dm LCTRL Z     &dm LALT X   &kp C           &kp V        &kp B                                                       &none           &none                                                         &kp N    &kp M       &kp COMMA   &kp DOT    &kp FSLH   &kp RSHFT
+        &kp GRAVE             &kp LC(SPACE)   &none        &kp LG(SPACE)   &mo ARROWS                                   &kp SPACE   &kp LGUI        &mo WINDOW      &none               &kp ENTER   &kp BSPC                               &kp MINUS   &kp EQUAL   &kp LBKT   &kp RBKT   &kp RCTRL
+      >;
+    };
+  };
+};

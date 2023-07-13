@@ -6,7 +6,7 @@ use std::{
 use crate::layouts::KeyboardLayoutType;
 use serde::Deserialize;
 
-pub(crate) use self::filename::*;
+pub use self::filename::*;
 
 mod constants;
 mod filename;

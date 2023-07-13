@@ -1,0 +1,16 @@
+== should format ==
+//foo
+  //  bar   
+
+[expect]
+// foo
+// bar
+
+== should re-align with code ==
+// Layers
+
+#define DEFAULT 0
+
+[expect]
+// Layers
+#define DEFAULT 0

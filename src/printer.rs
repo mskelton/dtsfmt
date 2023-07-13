@@ -4,7 +4,7 @@ use tree_sitter::TreeCursor;
 
 use crate::{
     context::Context,
-    layouts::KeyboardLayout,
+    layouts::{self, KeyboardLayoutType},
     parser::parse,
     utils::{get_text, lookahead, lookbehind, pad_right, print_indent, sep},
 };
@@ -307,16 +307,17 @@ fn print_bindings(writer: &mut String, source: &String, cursor: &mut TreeCursor,
     cursor.goto_parent();
 }
 
-pub fn print(source: &String, layout: &KeyboardLayout) -> String {
+pub fn print(source: &String, layout: KeyboardLayoutType) -> String {
     let mut writer = String::new();
     let tree = parse(source.clone());
     let mut cursor = tree.walk();
 
+    let layout = layouts::get_layout(layout);
     let ctx = Context {
         indent: 0,
         bindings: false,
         keymap: false,
-        layout,
+        layout: &layout,
     };
 
     // The first node is the root document node, so we have to traverse all it's

@@ -1,0 +1,49 @@
+== should format include ==
+ #	include "foo.dtsi"
+   # include   <bar.dtsi>
+
+[expect]
+#include "foo.dtsi"
+#include <bar.dtsi>
+
+== include works in nodes ==
+/ {
+     #include "foo.dtsi"
+   #include    <bar.dtsi>
+};
+
+[expect]
+/ {
+  #include "foo.dtsi"
+  #include <bar.dtsi>
+
+};
+
+== should add newline before next node ==
+behaviors {
+  #include "foo.dtsi"
+
+  #include "bar.dtsi"
+  dm: dual_mod_key {
+    compatible = "zmk,behavior-hold-tap";
+  };
+};
+
+[expect]
+behaviors {
+  #include "foo.dtsi"
+  #include "bar.dtsi"
+
+  dm: dual_mod_key {
+    compatible = "zmk,behavior-hold-tap";
+  };
+};
+
+== should format define ==
+#define  DEFAULT 0
+
+#define   WINDOW   1  
+
+[expect]
+#define DEFAULT 0
+#define WINDOW 1
