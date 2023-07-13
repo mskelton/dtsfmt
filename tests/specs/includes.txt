@@ -1,5 +1,5 @@
 == should format ==
- #  include "foo.dtsi"
+ #	include "foo.dtsi"
    # include   <bar.dtsi>
 
 [expect]
