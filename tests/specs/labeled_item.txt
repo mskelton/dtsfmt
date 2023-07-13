@@ -1,12 +1,15 @@
 == should format ==
-/ {
-     #include "foo.dtsi"
-   #include    <bar.dtsi>
+macro_triple_grave: macro_triple_grave {
+  label="macro_triple_grave";
+  compatible  = "zmk,behavior-macro";
+    #binding-cells = <0>;
+  bindings = <&kp GRAVE>,     <&kp GRAVE >,<&kp GRAVE>   ;
 };
 
 [expect]
-/ {
-  #include "foo.dtsi"
-  #include <bar.dtsi>
-
+macro_triple_grave: macro_triple_grave {
+  label = "macro_triple_grave";
+  compatible = "zmk,behavior-macro";
+  #binding-cells = <0>;
+  bindings = <&kp GRAVE>, <&kp GRAVE>, <&kp GRAVE>;
 };
