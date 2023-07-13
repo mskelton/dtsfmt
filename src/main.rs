@@ -1,11 +1,3 @@
-mod config;
-mod context;
-mod emitter;
-mod layouts;
-mod parser;
-mod printer;
-mod utils;
-
 use std::{
     fs,
     io::{self, Read},
@@ -13,18 +5,10 @@ use std::{
 };
 
 use clap::Parser;
-use config::Filename;
-use emitter::{Emitter, FormattedFile};
-
-/// What dtsfmt should emit. Mostly corresponds to the `--emit` command line
-/// option.
-#[derive(clap::ValueEnum, Clone, Debug)]
-enum EmitMode {
-    /// Emits to files
-    Files,
-    /// Writes the output to stdout
-    Stdout,
-}
+use dtsfmt::{
+    config::{Config, Filename},
+    emitter::{create_emitter, EmitMode, FormattedFile},
+};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -57,7 +41,7 @@ fn main() {
         Filename::Stdin => std::env::current_dir().unwrap(),
     };
 
-    let config = config::Config::parse(&config_path);
+    let config = Config::parse(&config_path);
     let source = match &filename {
         Filename::Real(path) => fs::read_to_string(&path).expect("Failed to read file"),
         Filename::Stdin => {
@@ -71,8 +55,7 @@ fn main() {
         }
     };
 
-    let layout = layouts::get_layout(config.layout);
-    let output = printer::print(&source, &layout);
+    let output = dtsfmt::printer::print(&source, config.layout);
     let result = FormattedFile {
         filename: &filename,
         original_text: &source,
@@ -82,11 +65,4 @@ fn main() {
     create_emitter(cli.emit)
         .emit_formatted_file(result)
         .expect("Failed to emit formatted file");
-}
-
-fn create_emitter<'a>(emit_mode: EmitMode) -> Box<dyn Emitter + 'a> {
-    match emit_mode {
-        EmitMode::Files => Box::new(emitter::FilesEmitter::new()),
-        EmitMode::Stdout => Box::new(emitter::StdoutEmitter::new()),
-    }
 }

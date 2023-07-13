@@ -1,0 +1,19 @@
+== should format ==
+ #  include "foo.dtsi"
+   # include   <bar.dtsi>
+
+[expect]
+#include "foo.dtsi"
+#include <bar.dtsi>
+
+== works in nodes ==
+/ {
+     #include "foo.dtsi"
+   #include    <bar.dtsi>
+};
+
+[expect]
+/ {
+   #include "foo.dtsi"
+   #include <bar.dtsi>
+};

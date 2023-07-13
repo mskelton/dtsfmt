@@ -2,10 +2,10 @@ use super::*;
 use std::fs;
 
 #[derive(Debug, Default)]
-pub(crate) struct FilesEmitter {}
+pub struct FilesEmitter {}
 
 impl FilesEmitter {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self {}
     }
 }

@@ -3,10 +3,10 @@ use std::io::Write;
 use super::*;
 
 #[derive(Debug)]
-pub(crate) struct StdoutEmitter {}
+pub struct StdoutEmitter {}
 
 impl StdoutEmitter {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self {}
     }
 }
