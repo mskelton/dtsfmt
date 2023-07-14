@@ -307,7 +307,7 @@ fn print_bindings(writer: &mut String, source: &String, cursor: &mut TreeCursor,
     cursor.goto_parent();
 }
 
-pub fn print(source: &String, layout: KeyboardLayoutType) -> String {
+pub fn print(source: &String, layout: &KeyboardLayoutType) -> String {
     let mut writer = String::new();
     let tree = parse(source.clone());
     let mut cursor = tree.walk();

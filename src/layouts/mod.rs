@@ -19,7 +19,7 @@ impl KeyboardLayout {
     }
 }
 
-pub fn get_layout(layout_type: KeyboardLayoutType) -> KeyboardLayout {
+pub fn get_layout(layout_type: &KeyboardLayoutType) -> KeyboardLayout {
     match layout_type {
         KeyboardLayoutType::Adv360 => adv360::get_layout(),
     }
