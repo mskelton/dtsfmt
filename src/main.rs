@@ -1,3 +1,4 @@
+use ignore::{types::TypesBuilder, WalkBuilder};
 use std::{
     fs,
     io::{self, Read},
@@ -7,7 +8,7 @@ use std::{
 use clap::Parser;
 use dtsfmt::{
     config::{Config, Filename},
-    emitter::{create_emitter, EmitMode, FormattedFile},
+    emitter::{create_emitter, EmitMode, Emitter, FormattedFile},
 };
 
 #[derive(Parser)]
@@ -42,8 +43,37 @@ fn main() {
     };
 
     let config = Config::parse(&config_path);
-    let source = match &filename {
-        Filename::Real(path) => fs::read_to_string(&path).expect("Failed to read file"),
+    let mut emitter = create_emitter(cli.emit);
+
+    match &filename {
+        Filename::Real(path) => {
+            let mut types = TypesBuilder::new();
+            types.add_defaults();
+            types.add("devicetree", "*.keymap").unwrap();
+            types.select("devicetree");
+
+            for result in WalkBuilder::new(path)
+                .types(types.build().unwrap())
+                .add_custom_ignore_filename(".dtsfmtignore")
+                .hidden(false)
+                .build()
+            {
+                let result = result.expect("Failed to walk directory");
+                if !result.file_type().map_or(false, |ft| ft.is_file()) {
+                    continue;
+                }
+
+                let path = result.path();
+                let buffer = fs::read_to_string(&path).expect("Failed to read file");
+
+                format(
+                    Filename::Real(path.to_path_buf()),
+                    buffer,
+                    &mut emitter,
+                    &config,
+                );
+            }
+        }
         Filename::Stdin => {
             let mut buffer = String::new();
 
@@ -51,18 +81,20 @@ fn main() {
                 .read_to_string(&mut buffer)
                 .expect("Failed to read stdin");
 
-            buffer
+            format(filename, buffer, &mut emitter, &config);
         }
     };
+}
 
-    let output = dtsfmt::printer::print(&source, config.layout);
+fn format(filename: Filename, source: String, emitter: &mut Box<dyn Emitter>, config: &Config) {
+    let output = dtsfmt::printer::print(&source, &config.layout);
     let result = FormattedFile {
         filename: &filename,
         original_text: &source,
         formatted_text: &output,
     };
 
-    create_emitter(cli.emit)
+    emitter
         .emit_formatted_file(result)
         .expect("Failed to emit formatted file");
 }

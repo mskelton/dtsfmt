@@ -48,7 +48,7 @@ pub fn run_specs(directory_path: &Path) {
     let mut failed_tests = Vec::new();
 
     for spec in specs {
-        let result = print(&spec.file_text, KeyboardLayoutType::Adv360);
+        let result = print(&spec.file_text, &KeyboardLayoutType::Adv360);
 
         if result != spec.expected_text {
             failed_tests.push(FailedTestResult {
