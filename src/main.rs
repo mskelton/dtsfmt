@@ -64,7 +64,7 @@ fn main() {
                 }
 
                 let path = result.path();
-                let buffer = fs::read_to_string(&path).expect("Failed to read stdin");
+                let buffer = fs::read_to_string(&path).expect("Failed to read file");
 
                 format(
                     Filename::Real(path.to_path_buf()),
