@@ -12,6 +12,13 @@ impl StdoutEmitter {
 }
 
 impl Emitter for StdoutEmitter {
+    fn emit_check(
+        &mut self,
+        _: FormattedFile<'_>,
+    ) -> Result<EmitterResult, io::Error> {
+        Ok(EmitterResult::default())
+    }
+
     fn emit_formatted_file(
         &mut self,
         FormattedFile { formatted_text, .. }: FormattedFile<'_>,

@@ -11,6 +11,15 @@ impl FilesEmitter {
 }
 
 impl Emitter for FilesEmitter {
+    fn emit_check(
+        &mut self,
+        FormattedFile { filename, .. }: FormattedFile<'_>,
+    ) -> Result<EmitterResult, io::Error> {
+        println!("{}", ensure_real_path(filename).display());
+
+        Ok(EmitterResult::default())
+    }
+
     fn emit_formatted_file(
         &mut self,
         FormattedFile {

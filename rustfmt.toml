@@ -1,0 +1,7 @@
+format_strings = true
+group_imports = "StdExternalCrate"
+imports_granularity = "Module"
+imports_layout = "HorizontalVertical"
+max_width = 80
+use_small_heuristics = "max"
+wrap_comments = true

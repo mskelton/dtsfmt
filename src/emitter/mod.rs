@@ -18,6 +18,11 @@ pub struct FormattedFile<'a> {
 pub struct EmitterResult {}
 
 pub trait Emitter {
+    fn emit_check(
+        &mut self,
+        formatted_file: FormattedFile<'_>,
+    ) -> Result<EmitterResult, io::Error>;
+
     fn emit_formatted_file(
         &mut self,
         formatted_file: FormattedFile<'_>,

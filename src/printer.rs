@@ -9,7 +9,12 @@ use crate::{
     utils::{get_text, lookahead, lookbehind, pad_right, print_indent, sep},
 };
 
-fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: &Context) {
+fn traverse(
+    writer: &mut String,
+    source: &String,
+    cursor: &mut TreeCursor,
+    ctx: &Context,
+) {
     let node = cursor.node();
 
     match node.kind() {
@@ -46,7 +51,9 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: 
             cursor.goto_parent();
 
             // Add a newline if this is the last include
-            if lookahead(cursor).map_or(false, |n| n.kind() != "preproc_include") {
+            if lookahead(cursor)
+                .map_or(false, |n| n.kind() != "preproc_include")
+            {
                 writer.push('\n');
             }
         }
@@ -210,7 +217,11 @@ fn traverse(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: 
     };
 }
 
-fn collect_bindings(cursor: &mut TreeCursor, source: &String, ctx: &Context) -> VecDeque<String> {
+fn collect_bindings(
+    cursor: &mut TreeCursor,
+    source: &String,
+    ctx: &Context,
+) -> VecDeque<String> {
     let mut buf: VecDeque<String> = VecDeque::new();
     let mut item = String::new();
 
@@ -273,7 +284,12 @@ fn calculate_sizes(buf: &VecDeque<String>, row_size: usize) -> Vec<usize> {
     sizes
 }
 
-fn print_bindings(writer: &mut String, source: &String, cursor: &mut TreeCursor, ctx: &Context) {
+fn print_bindings(
+    writer: &mut String,
+    source: &String,
+    cursor: &mut TreeCursor,
+    ctx: &Context,
+) {
     cursor.goto_first_child();
     writer.push_str("<");
 
@@ -313,12 +329,8 @@ pub fn print(source: &String, layout: &KeyboardLayoutType) -> String {
     let mut cursor = tree.walk();
 
     let layout = layouts::get_layout(layout);
-    let ctx = Context {
-        indent: 0,
-        bindings: false,
-        keymap: false,
-        layout: &layout,
-    };
+    let ctx =
+        Context { indent: 0, bindings: false, keymap: false, layout: &layout };
 
     // The first node is the root document node, so we have to traverse all it's
     // children with the same indentation level.

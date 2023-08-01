@@ -11,6 +11,12 @@ use dtsfmt::{
     emitter::{create_emitter, EmitMode, Emitter, FormattedFile},
 };
 
+#[derive(PartialEq)]
+enum FormattingStatus {
+    Changed,
+    Unchanged,
+}
+
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
@@ -44,6 +50,7 @@ fn main() {
 
     let config = Config::parse(&config_path);
     let mut emitter = create_emitter(cli.emit);
+    let mut has_errors = false;
 
     match &filename {
         Filename::Real(path) => {
@@ -64,14 +71,18 @@ fn main() {
                 }
 
                 let path = result.path();
-                let buffer = fs::read_to_string(&path).expect("Failed to read file");
+                let buffer =
+                    fs::read_to_string(&path).expect("Failed to read file");
 
-                format(
+                let status = format(
                     Filename::Real(path.to_path_buf()),
                     buffer,
                     &mut emitter,
                     &config,
+                    cli.check,
                 );
+
+                has_errors |= status == FormattingStatus::Changed;
             }
         }
         Filename::Stdin => {
@@ -81,12 +92,26 @@ fn main() {
                 .read_to_string(&mut buffer)
                 .expect("Failed to read stdin");
 
-            format(filename, buffer, &mut emitter, &config);
+            let status =
+                format(filename, buffer, &mut emitter, &config, cli.check);
+
+            has_errors |= status == FormattingStatus::Changed;
         }
     };
+
+    if cli.check && has_errors {
+        println!("\nErrors found while formatting!");
+        std::process::exit(1);
+    }
 }
 
-fn format(filename: Filename, source: String, emitter: &mut Box<dyn Emitter>, config: &Config) {
+fn format(
+    filename: Filename,
+    source: String,
+    emitter: &mut Box<dyn Emitter>,
+    config: &Config,
+    check: bool,
+) -> FormattingStatus {
     let output = dtsfmt::printer::print(&source, &config.layout);
     let result = FormattedFile {
         filename: &filename,
@@ -94,7 +119,20 @@ fn format(filename: Filename, source: String, emitter: &mut Box<dyn Emitter>, co
         formatted_text: &output,
     };
 
-    emitter
-        .emit_formatted_file(result)
-        .expect("Failed to emit formatted file");
+    // When the --check flag is false, we emit the changes.
+    if !check {
+        emitter
+            .emit_formatted_file(result)
+            .expect("Failed to emit formatted file");
+
+        return FormattingStatus::Changed;
+    }
+
+    if output != source {
+        emitter.emit_check(result).expect("Failed to emit check result");
+
+        return FormattingStatus::Changed;
+    }
+
+    return FormattingStatus::Unchanged;
 }

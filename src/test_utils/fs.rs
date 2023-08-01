@@ -5,10 +5,7 @@ use std::path::Path;
 pub fn get_specs_in_dir(path: &Path) -> Vec<Spec> {
     let spec_files = get_files_in_dir_recursive(path);
 
-    spec_files
-        .iter()
-        .flat_map(|text| parse_specs(text.clone()))
-        .collect()
+    spec_files.iter().flat_map(|text| parse_specs(text.clone())).collect()
 }
 
 pub fn get_files_in_dir_recursive(path: &Path) -> Vec<String> {

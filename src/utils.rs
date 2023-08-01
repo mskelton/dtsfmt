@@ -43,11 +43,7 @@ pub fn sep(writer: &mut String) {
 }
 
 pub fn get_text<'a>(source: &'a String, cursor: &mut TreeCursor) -> &'a str {
-    return cursor
-        .node()
-        .utf8_text(source.as_bytes())
-        .unwrap_or("")
-        .trim();
+    return cursor.node().utf8_text(source.as_bytes()).unwrap_or("").trim();
 }
 
 pub fn pad_right(string: &str, size: usize) -> String {

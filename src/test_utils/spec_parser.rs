@@ -18,7 +18,10 @@ pub fn parse_specs(file_text: String) -> Vec<Spec> {
             spec_starts[i + 1]
         };
         let message_line = lines[start_index];
-        let spec = parse_single_spec(message_line, &lines[(start_index + 1)..end_index]);
+        let spec = parse_single_spec(
+            message_line,
+            &lines[(start_index + 1)..end_index],
+        );
 
         specs.push(spec);
     }
@@ -53,8 +56,8 @@ pub fn parse_specs(file_text: String) -> Vec<Spec> {
         let message_separator = get_message_separator();
 
         Spec {
-            message: message_line
-                [message_separator.len()..message_line.len() - message_separator.len()]
+            message: message_line[message_separator.len()
+                ..message_line.len() - message_separator.len()]
                 .trim()
                 .into(),
             file_text: start_text,
