@@ -15,7 +15,7 @@ impl Emitter for FilesEmitter {
         &mut self,
         FormattedFile { filename, .. }: FormattedFile<'_>,
     ) -> Result<EmitterResult, io::Error> {
-        println!("{}", ensure_real_path(filename).display());
+        println!("{}", filename.display());
 
         Ok(EmitterResult::default())
     }
@@ -29,8 +29,6 @@ impl Emitter for FilesEmitter {
         }: FormattedFile<'_>,
     ) -> Result<EmitterResult, io::Error> {
         // Write text directly over original file if there is a diff.
-        let filename = ensure_real_path(filename);
-
         if original_text != formatted_text {
             fs::write(filename, formatted_text)?;
         }

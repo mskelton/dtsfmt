@@ -7,8 +7,8 @@ use std::{
 
 use clap::Parser;
 use dtsfmt::{
-    config::{Config, Filename},
-    emitter::{create_emitter, EmitMode, Emitter, FormattedFile},
+    config::Config,
+    emitter::{create_emitter, Emitter, FormattedFile},
 };
 
 #[derive(PartialEq)]
@@ -24,80 +24,61 @@ struct Cli {
     #[arg(long, short)]
     check: bool,
 
-    /// How to emit the results
-    #[arg(long, default_value = "files")]
-    emit: EmitMode,
+    /// Read from stdin instead of a file and emit to stdout
+    #[arg(long)]
+    stdin: bool,
 
     /// The file to format
     #[arg(index = 1, value_name = "FILE")]
-    file_path: Option<PathBuf>,
+    file_path: PathBuf,
 }
 
 fn main() {
     let cli = Cli::parse();
-
-    let filename = match cli.file_path {
-        Some(file) => Filename::Real(file.clone()),
-        None => Filename::Stdin,
-    };
-
-    // If the file is real, we can read from it's directory to find the config
-    // file. If it's stdin, we can't, so we just use the current directory.
-    let config_path = match &filename {
-        Filename::Real(path) => path.to_path_buf(),
-        Filename::Stdin => std::env::current_dir().unwrap(),
-    };
-
-    let config = Config::parse(&config_path);
-    let mut emitter = create_emitter(cli.emit);
+    let config = Config::parse(&cli.file_path.to_path_buf());
+    let mut emitter = create_emitter(cli.stdin);
     let mut has_errors = false;
 
-    match &filename {
-        Filename::Real(path) => {
-            let mut types = TypesBuilder::new();
-            types.add_defaults();
-            types.add("devicetree", "*.keymap").unwrap();
-            types.select("devicetree");
+    let mut types = TypesBuilder::new();
+    types.add_defaults();
+    types.add("devicetree", "*.keymap").unwrap();
+    types.select("devicetree");
 
-            for result in WalkBuilder::new(path)
-                .types(types.build().unwrap())
-                .add_custom_ignore_filename(".dtsfmtignore")
-                .hidden(false)
-                .build()
-            {
-                let result = result.expect("Failed to walk directory");
-                if !result.file_type().map_or(false, |ft| ft.is_file()) {
-                    continue;
-                }
-
-                let path = result.path();
-                let buffer =
-                    fs::read_to_string(&path).expect("Failed to read file");
-
-                let status = format(
-                    Filename::Real(path.to_path_buf()),
-                    buffer,
-                    &mut emitter,
-                    &config,
-                    cli.check,
-                );
-
-                has_errors |= status == FormattingStatus::Changed;
-            }
+    for result in WalkBuilder::new(cli.file_path)
+        .types(types.build().unwrap())
+        .add_custom_ignore_filename(".dtsfmtignore")
+        .standard_filters(false)
+        .build()
+    {
+        let result = result.expect("Failed to walk directory");
+        if !result.file_type().map_or(false, |ft| ft.is_file()) {
+            continue;
         }
-        Filename::Stdin => {
+
+        // Read the file contents from stdin or the file
+        let path = result.path();
+        let buffer = if cli.stdin {
             let mut buffer = String::new();
 
             io::stdin()
                 .read_to_string(&mut buffer)
                 .expect("Failed to read stdin");
 
-            let status =
-                format(filename, buffer, &mut emitter, &config, cli.check);
+            buffer
+        } else {
+            fs::read_to_string(&path).expect("Failed to read file")
+        };
 
-            has_errors |= status == FormattingStatus::Changed;
-        }
-    };
+        let status = format(
+            path.to_path_buf(),
+            buffer,
+            &mut emitter,
+            &config,
+            cli.check,
+        );
+
+        has_errors |= status == FormattingStatus::Changed;
+    }
 
     if cli.check && has_errors {
         println!("\nErrors found while formatting!");
@@ -106,7 +87,7 @@ fn main() {
 }
 
 fn format(
-    filename: Filename,
+    filename: PathBuf,
     source: String,
     emitter: &mut Box<dyn Emitter>,
     config: &Config,

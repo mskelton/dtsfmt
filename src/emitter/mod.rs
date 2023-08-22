@@ -1,15 +1,14 @@
 pub use self::files::*;
 pub use self::stdout::*;
 
-use std::{io, path::Path};
-
-use crate::config::Filename;
+use std::io;
+use std::path::PathBuf;
 
 mod files;
 mod stdout;
 
 pub struct FormattedFile<'a> {
-    pub filename: &'a Filename,
+    pub filename: &'a PathBuf,
     pub original_text: &'a str,
     pub formatted_text: &'a str,
 }
@@ -29,26 +28,9 @@ pub trait Emitter {
     ) -> Result<EmitterResult, io::Error>;
 }
 
-/// What dtsfmt should emit. Mostly corresponds to the `--emit` command line
-/// option.
-#[derive(clap::ValueEnum, Clone, Debug)]
-pub enum EmitMode {
-    /// Emits to files
-    Files,
-    /// Writes the output to stdout
-    Stdout,
-}
-
-fn ensure_real_path(filename: &Filename) -> &Path {
-    match *filename {
-        Filename::Real(ref path) => path,
-        _ => panic!("cannot format `{}` and emit to files", filename),
-    }
-}
-
-pub fn create_emitter<'a>(emit_mode: EmitMode) -> Box<dyn Emitter + 'a> {
-    match emit_mode {
-        EmitMode::Files => Box::new(FilesEmitter::new()),
-        EmitMode::Stdout => Box::new(StdoutEmitter::new()),
+pub fn create_emitter<'a>(stdin: bool) -> Box<dyn Emitter + 'a> {
+    match stdin {
+        true => Box::new(StdoutEmitter::new()),
+        false => Box::new(FilesEmitter::new()),
     }
 }

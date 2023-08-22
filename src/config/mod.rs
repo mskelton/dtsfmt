@@ -6,10 +6,7 @@ use std::{
 use crate::layouts::KeyboardLayoutType;
 use serde::Deserialize;
 
-pub use self::filename::*;
-
 mod constants;
-mod filename;
 
 #[derive(Deserialize)]
 pub struct Config {
