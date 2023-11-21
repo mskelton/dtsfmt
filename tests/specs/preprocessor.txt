@@ -47,3 +47,95 @@ behaviors {
 [expect]
 #define DEFAULT 0
 #define WINDOW 1
+
+== should support ifdef ==
+  #ifdef VERSION_MACRO
+      macro_ver: macro_ver {
+        compatible = "zmk,behavior-macro";
+
+          label = "macro_version";
+        #binding-cells = <0>;
+    bindings = <&kp RET>;
+        };
+#endif
+
+[expect]
+#ifdef VERSION_MACRO
+  macro_ver: macro_ver {
+    compatible = "zmk,behavior-macro";
+    label = "macro_version";
+    #binding-cells = <0>;
+    bindings = <&kp RET>;
+  };
+#endif
+
+== should support ifdef in nodes ==
+/ {
+  #ifdef VERSION_MACRO
+      macro_ver: macro_ver {
+        compatible = "zmk,behavior-macro";
+
+          label = "macro_version";
+        #binding-cells = <0>;
+    bindings = <&kp RET>;
+        };
+#endif
+};
+
+[expect]
+/ {
+  #ifdef VERSION_MACRO
+    macro_ver: macro_ver {
+      compatible = "zmk,behavior-macro";
+      label = "macro_version";
+      #binding-cells = <0>;
+      bindings = <&kp RET>;
+    };
+  #endif
+};
+
+== should support ifndef ==
+  #ifndef VERSION_MACRO
+      macro_ver: macro_ver {
+        compatible = "zmk,behavior-macro";
+
+          label = "macro_version";
+        #binding-cells = <0>;
+    bindings = <&kp RET>;
+        };
+#endif
+
+[expect]
+#ifndef VERSION_MACRO
+  macro_ver: macro_ver {
+    compatible = "zmk,behavior-macro";
+    label = "macro_version";
+    #binding-cells = <0>;
+    bindings = <&kp RET>;
+  };
+#endif
+
+== should support ifndef in nodes ==
+/ {
+  #ifndef VERSION_MACRO
+      macro_ver: macro_ver {
+        compatible = "zmk,behavior-macro";
+
+          label = "macro_version";
+        #binding-cells = <0>;
+    bindings = <&kp RET>;
+        };
+#endif
+};
+
+[expect]
+/ {
+  #ifndef VERSION_MACRO
+    macro_ver: macro_ver {
+      compatible = "zmk,behavior-macro";
+      label = "macro_version";
+      #binding-cells = <0>;
+      bindings = <&kp RET>;
+    };
+  #endif
+};
