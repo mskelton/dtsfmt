@@ -9,6 +9,13 @@ use crate::{
     utils::{get_text, lookahead, lookbehind, pad_right, print_indent, sep},
 };
 
+fn is_preproc(n: &tree_sitter::Node) -> bool {
+    n.kind() == "preproc_include"
+        || n.kind() == "preproc_ifdef"
+        || n.kind() == "preproc_def"
+        || n.kind() == "preproc_function_def"
+}
+
 fn traverse(
     writer: &mut String,
     source: &String,
@@ -50,10 +57,8 @@ fn traverse(
 
             cursor.goto_parent();
 
-            // Add a newline if this is the last include
-            if lookahead(cursor)
-                .map_or(false, |n| n.kind() != "preproc_include")
-            {
+            // Add a newline if this is the last preproc directive
+            if lookahead(cursor).map_or(false, |n| !is_preproc(&n)) {
                 writer.push('\n');
             }
         }
@@ -72,6 +77,11 @@ fn traverse(
 
             writer.push('\n');
             cursor.goto_parent();
+
+            // Add a newline if this is the last preproc directive
+            if lookahead(cursor).map_or(false, |n| !is_preproc(&n)) {
+                writer.push('\n');
+            }
         }
         "preproc_function_def" => {
             cursor.goto_first_child();
@@ -90,6 +100,11 @@ fn traverse(
 
             writer.push('\n');
             cursor.goto_parent();
+
+            // Add a newline if this is the last preproc directive
+            if lookahead(cursor).map_or(false, |n| !is_preproc(&n)) {
+                writer.push('\n');
+            }
         }
         "preproc_ifdef" => {
             print_indent(writer, ctx);
@@ -113,6 +128,11 @@ fn traverse(
             print_indent(writer, ctx);
             writer.push_str("#endif\n");
             cursor.goto_parent();
+
+            // Add a newline if this is the last preproc directive
+            if lookahead(cursor).map_or(false, |n| !is_preproc(&n)) {
+                writer.push('\n');
+            }
         }
         "labeled_item" => {
             cursor.goto_first_child();

@@ -43,12 +43,22 @@ behaviors {
 #define  DEFAULT 0
 
 #define   WINDOW   1  
+  dm: dual_mod_key {
+    compatible = "zmk,behavior-hold-tap";
+  };
+
 
 [expect]
 #define DEFAULT 0
 #define WINDOW 1
 
+dm: dual_mod_key {
+  compatible = "zmk,behavior-hold-tap";
+};
+
 == should support ifdef ==
+#include "foo.dtsi"
+
   #ifdef VERSION_MACRO
       macro_ver: macro_ver {
         compatible = "zmk,behavior-macro";
@@ -59,7 +69,13 @@ behaviors {
         };
 #endif
 
+
+dm: dual_mod_key {
+      compatible = "zmk,behavior-hold-tap";
+  };
+
 [expect]
+#include "foo.dtsi"
 #ifdef VERSION_MACRO
 macro_ver: macro_ver {
   compatible = "zmk,behavior-macro";
@@ -69,8 +85,14 @@ macro_ver: macro_ver {
 };
 #endif
 
+dm: dual_mod_key {
+  compatible = "zmk,behavior-hold-tap";
+};
+
 == should support ifdef in nodes ==
 / {
+    #include "foo.dtsi"
+
   #ifdef VERSION_MACRO
       macro_ver: macro_ver {
         compatible = "zmk,behavior-macro";
@@ -80,10 +102,15 @@ macro_ver: macro_ver {
     bindings = <&kp RET>;
         };
 #endif
+
+dm: dual_mod_key {
+      compatible = "zmk,behavior-hold-tap";
+  };
 };
 
 [expect]
 / {
+  #include "foo.dtsi"
   #ifdef VERSION_MACRO
   macro_ver: macro_ver {
     compatible = "zmk,behavior-macro";
@@ -92,9 +119,14 @@ macro_ver: macro_ver {
     bindings = <&kp RET>;
   };
   #endif
+
+  dm: dual_mod_key {
+    compatible = "zmk,behavior-hold-tap";
+  };
 };
 
 == should support ifndef ==
+    #include "foo.dtsi"
   #ifndef VERSION_MACRO
       macro_ver: macro_ver {
         compatible = "zmk,behavior-macro";
@@ -105,7 +137,13 @@ macro_ver: macro_ver {
         };
 #endif
 
+
+ dm: dual_mod_key {
+    compatible = "zmk,behavior-hold-tap";
+};
+
 [expect]
+#include "foo.dtsi"
 #ifndef VERSION_MACRO
 macro_ver: macro_ver {
   compatible = "zmk,behavior-macro";
@@ -115,8 +153,13 @@ macro_ver: macro_ver {
 };
 #endif
 
+dm: dual_mod_key {
+  compatible = "zmk,behavior-hold-tap";
+};
+
 == should support ifndef in nodes ==
 / {
+#include "foo.dtsi"
   #ifndef VERSION_MACRO
       macro_ver: macro_ver {
         compatible = "zmk,behavior-macro";
@@ -126,10 +169,14 @@ macro_ver: macro_ver {
     bindings = <&kp RET>;
         };
 #endif
+dm: dual_mod_key {
+      compatible = "zmk,behavior-hold-tap";
+        };
 };
 
 [expect]
 / {
+  #include "foo.dtsi"
   #ifndef VERSION_MACRO
   macro_ver: macro_ver {
     compatible = "zmk,behavior-macro";
@@ -138,4 +185,8 @@ macro_ver: macro_ver {
     bindings = <&kp RET>;
   };
   #endif
+
+  dm: dual_mod_key {
+    compatible = "zmk,behavior-hold-tap";
+  };
 };
