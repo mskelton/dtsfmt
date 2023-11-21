@@ -61,12 +61,12 @@ behaviors {
 
 [expect]
 #ifdef VERSION_MACRO
-  macro_ver: macro_ver {
-    compatible = "zmk,behavior-macro";
-    label = "macro_version";
-    #binding-cells = <0>;
-    bindings = <&kp RET>;
-  };
+macro_ver: macro_ver {
+  compatible = "zmk,behavior-macro";
+  label = "macro_version";
+  #binding-cells = <0>;
+  bindings = <&kp RET>;
+};
 #endif
 
 == should support ifdef in nodes ==
@@ -85,12 +85,12 @@ behaviors {
 [expect]
 / {
   #ifdef VERSION_MACRO
-    macro_ver: macro_ver {
-      compatible = "zmk,behavior-macro";
-      label = "macro_version";
-      #binding-cells = <0>;
-      bindings = <&kp RET>;
-    };
+  macro_ver: macro_ver {
+    compatible = "zmk,behavior-macro";
+    label = "macro_version";
+    #binding-cells = <0>;
+    bindings = <&kp RET>;
+  };
   #endif
 };
 
@@ -107,12 +107,12 @@ behaviors {
 
 [expect]
 #ifndef VERSION_MACRO
-  macro_ver: macro_ver {
-    compatible = "zmk,behavior-macro";
-    label = "macro_version";
-    #binding-cells = <0>;
-    bindings = <&kp RET>;
-  };
+macro_ver: macro_ver {
+  compatible = "zmk,behavior-macro";
+  label = "macro_version";
+  #binding-cells = <0>;
+  bindings = <&kp RET>;
+};
 #endif
 
 == should support ifndef in nodes ==
@@ -131,11 +131,11 @@ behaviors {
 [expect]
 / {
   #ifndef VERSION_MACRO
-    macro_ver: macro_ver {
-      compatible = "zmk,behavior-macro";
-      label = "macro_version";
-      #binding-cells = <0>;
-      bindings = <&kp RET>;
-    };
+  macro_ver: macro_ver {
+    compatible = "zmk,behavior-macro";
+    label = "macro_version";
+    #binding-cells = <0>;
+    bindings = <&kp RET>;
+  };
   #endif
 };
