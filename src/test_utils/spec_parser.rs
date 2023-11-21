@@ -3,6 +3,7 @@ pub struct Spec {
     pub message: String,
     pub file_text: String,
     pub expected_text: String,
+    pub is_only: bool,
 }
 
 pub fn parse_specs(file_text: String) -> Vec<Spec> {
@@ -54,6 +55,7 @@ pub fn parse_specs(file_text: String) -> Vec<Spec> {
         let start_text = parts[0][0..parts[0].len() - "\n".len()].into(); // remove last newline
         let expected_text = parts[1]["\n".len()..].into(); // remove first newline
         let message_separator = get_message_separator();
+        let lower_case_message_line = message_line.to_ascii_lowercase();
 
         Spec {
             message: message_line[message_separator.len()
@@ -62,6 +64,7 @@ pub fn parse_specs(file_text: String) -> Vec<Spec> {
                 .into(),
             file_text: start_text,
             expected_text,
+            is_only: lower_case_message_line.contains("(only)"),
         }
     }
 
@@ -109,6 +112,7 @@ mod tests {
                 file_text: "start\nmultiple\n".into(),
                 expected_text: "expected\nmultiple\n".into(),
                 message: "message 1".into(),
+                is_only: false,
             }
         );
         assert_eq!(
@@ -117,6 +121,7 @@ mod tests {
                 file_text: "start2\n".into(),
                 expected_text: "expected2\n".into(),
                 message: "message 2 (only) (skip) (skip-format-twice)".into(),
+                is_only: true,
             }
         );
         assert_eq!(
@@ -125,6 +130,7 @@ mod tests {
                 file_text: "test\n".into(),
                 expected_text: "test\n".into(),
                 message: "message 3 (trace)".into(),
+                is_only: false,
             }
         );
     }
