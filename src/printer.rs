@@ -91,6 +91,29 @@ fn traverse(
             writer.push('\n');
             cursor.goto_parent();
         }
+        "preproc_ifdef" => {
+            print_indent(writer, ctx);
+
+            // #ifdef
+            cursor.goto_first_child();
+            writer.push_str(get_text(source, cursor).trim());
+            writer.push(' ');
+
+            // Name
+            cursor.goto_next_sibling();
+            writer.push_str(get_text(source, cursor));
+            writer.push_str("\n");
+
+            // Body
+            while cursor.goto_next_sibling() {
+                traverse(writer, &source, cursor, ctx);
+            }
+
+            // Closing
+            print_indent(writer, ctx);
+            writer.push_str("#endif\n");
+            cursor.goto_parent();
+        }
         "labeled_item" => {
             cursor.goto_first_child();
             print_indent(writer, ctx);
