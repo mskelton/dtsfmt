@@ -47,3 +47,4 @@ fn find_rc_file(path: &Path) -> Option<PathBuf> {
         }
     }
 }
+
