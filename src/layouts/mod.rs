@@ -1,11 +1,14 @@
 use serde::{Deserialize, Serialize};
 
 mod adv360;
+mod sweep;
 
 #[derive(Serialize, Deserialize)]
 pub enum KeyboardLayoutType {
     #[serde(rename = "kinesis:adv360")]
     Adv360,
+    #[serde(rename = "sweep")]
+    Sweep,
 }
 
 pub struct KeyboardLayout {
@@ -22,5 +25,6 @@ impl KeyboardLayout {
 pub fn get_layout(layout_type: &KeyboardLayoutType) -> KeyboardLayout {
     match layout_type {
         KeyboardLayoutType::Adv360 => adv360::get_layout(),
+        KeyboardLayoutType::Sweep => sweep::get_layout(),
     }
 }
