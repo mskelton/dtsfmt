@@ -33,10 +33,8 @@ struct Cli {
     file_path: PathBuf,
 }
 
-fn main() {
-    let cli = Cli::parse();
-    let config = Config::parse(&cli.file_path.to_path_buf());
-    let mut emitter = create_emitter(cli.stdin);
+fn format_fs(cli: &Cli, config: &Config) -> bool {
+    let mut emitter = create_emitter(false);
     let mut has_errors = false;
 
     let mut types = TypesBuilder::new();
@@ -44,7 +42,7 @@ fn main() {
     types.add("devicetree", "*.keymap").unwrap();
     types.select("devicetree");
 
-    for result in WalkBuilder::new(cli.file_path)
+    for result in WalkBuilder::new(&cli.file_path)
         .types(types.build().unwrap())
         .add_custom_ignore_filename(".dtsfmtignore")
         .standard_filters(false)
@@ -55,19 +53,9 @@ fn main() {
             continue;
         }
 
-        // Read the file contents from stdin or the file
+        // Read the file contents from the file
         let path = result.path();
-        let buffer = if cli.stdin {
-            let mut buffer = String::new();
-
-            io::stdin()
-                .read_to_string(&mut buffer)
-                .expect("Failed to read stdin");
-
-            buffer
-        } else {
-            fs::read_to_string(&path).expect("Failed to read file")
-        };
+        let buffer = fs::read_to_string(&path).expect("Failed to read file");
 
         let status = format(
             path.to_path_buf(),
@@ -79,6 +67,35 @@ fn main() {
 
         has_errors |= status == FormattingStatus::Changed;
     }
+
+    return has_errors;
+}
+
+fn format_stdin(cli: &Cli, config: &Config) -> bool {
+    let mut emitter = create_emitter(true);
+    let mut buffer = String::new();
+    io::stdin().read_to_string(&mut buffer).expect("Failed to read stdin");
+
+    let status = format(
+        PathBuf::from("stdin"),
+        buffer,
+        &mut emitter,
+        &config,
+        cli.check,
+    );
+
+    return status == FormattingStatus::Changed;
+}
+
+fn main() {
+    let cli = Cli::parse();
+    let config = Config::parse(&cli.file_path.to_path_buf());
+
+    let has_errors = if cli.stdin {
+        format_stdin(&cli, &config)
+    } else {
+        format_fs(&cli, &config)
+    };
 
     if cli.check && has_errors {
         println!("\nErrors found while formatting!");
