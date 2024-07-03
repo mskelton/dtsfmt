@@ -105,6 +105,7 @@ fn main() {
     }
 }
 
+/// Find all `.dtsfmtignore` files in the parent directories of the given path.
 fn find_ignore_files(start_path: &Path) -> Vec<PathBuf> {
     let mut ignore_files = Vec::new();
     let mut current_path = start_path.to_path_buf();
@@ -121,6 +122,8 @@ fn find_ignore_files(start_path: &Path) -> Vec<PathBuf> {
     ignore_files
 }
 
+/// Finds the project root by looking for a `.dtsfmtrc.toml` file in the parent
+/// directories.
 fn find_project_root(start_path: &Path) -> PathBuf {
     let mut current_path = start_path.to_path_buf();
 
@@ -136,6 +139,8 @@ fn find_project_root(start_path: &Path) -> PathBuf {
     return current_path;
 }
 
+/// Checks if a given file is ignored. This is only necessary in stdin mode
+/// where we don't use the `WalkBuilder` to filter out ignored files.
 fn is_ignored(file_path: &Path) -> bool {
     let ignore_files = find_ignore_files(file_path.parent().unwrap());
     let root_path = find_project_root(file_path);
