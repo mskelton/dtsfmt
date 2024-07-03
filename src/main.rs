@@ -154,6 +154,8 @@ fn is_ignored(file_path: &Path) -> bool {
     ignore.matched_path_or_any_parents(file_path, false).is_ignore()
 }
 
+/// Prints the original contents of the file to stdout. This is necessary when
+/// running in stdin mode and the file is ignored.
 fn print_original(
     cli: &Cli,
     emitter: &mut Box<dyn Emitter>,
@@ -168,6 +170,7 @@ fn print_original(
     return emit(emitter, file, &buffer, &buffer, cli.check);
 }
 
+/// Formats the given source code and emits the result.
 fn format(
     filename: PathBuf,
     source: String,
@@ -185,6 +188,7 @@ fn format(
     return emit(emitter, result, &output, &source, check);
 }
 
+/// Emits the output of formatting either in check mode or by writing to the file.
 fn emit(
     emitter: &mut Box<dyn Emitter>,
     result: FormattedFile,
