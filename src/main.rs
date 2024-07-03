@@ -1,4 +1,6 @@
+use ignore::gitignore::GitignoreBuilder;
 use ignore::{types::TypesBuilder, WalkBuilder};
+use std::path::Path;
 use std::{
     fs,
     io::{self, Read},
@@ -8,7 +10,7 @@ use std::{
 use clap::Parser;
 use dtsfmt::{
     config::Config,
-    emitter::{create_emitter, Emitter, FormattedFile},
+    emitter::{self, create_emitter, Emitter, FormattedFile},
 };
 
 #[derive(PartialEq)]
@@ -76,13 +78,13 @@ fn format_stdin(cli: &Cli, config: &Config) -> bool {
     let mut buffer = String::new();
     io::stdin().read_to_string(&mut buffer).expect("Failed to read stdin");
 
-    let status = format(
-        PathBuf::from("stdin"),
-        buffer,
-        &mut emitter,
-        &config,
-        cli.check,
-    );
+    // If the file is ignored, we need to print the original content unchanged
+    // since we still need to return content when running in stdin mode.
+    let status = if is_ignored(&cli.file_path) {
+        print_original(cli, &mut emitter, &buffer)
+    } else {
+        format(PathBuf::from("stdin"), buffer, &mut emitter, &config, cli.check)
+    };
 
     return status == FormattingStatus::Changed;
 }
@@ -103,6 +105,29 @@ fn main() {
     }
 }
 
+fn is_ignored(filename: &PathBuf) -> bool {
+    let mut builder =
+        GitignoreBuilder::new(filename.parent().unwrap().parent().unwrap());
+    builder.add(Path::new(".dtsfmtignore"));
+    let gitignore = builder.build().unwrap();
+
+    return gitignore.matched(filename, false).is_ignore();
+}
+
+fn print_original(
+    cli: &Cli,
+    emitter: &mut Box<dyn Emitter>,
+    buffer: &String,
+) -> FormattingStatus {
+    let file = FormattedFile {
+        filename: &PathBuf::from("stdin"),
+        original_text: &buffer,
+        formatted_text: &buffer,
+    };
+
+    return emit(emitter, file, &buffer, &buffer, cli.check);
+}
+
 fn format(
     filename: PathBuf,
     source: String,
@@ -117,6 +142,16 @@ fn format(
         formatted_text: &output,
     };
 
+    return emit(emitter, result, &output, &source, check);
+}
+
+fn emit(
+    emitter: &mut Box<dyn Emitter>,
+    result: FormattedFile,
+    output: &String,
+    source: &String,
+    check: bool,
+) -> FormattingStatus {
     // When the --check flag is false, we emit the changes.
     if !check {
         emitter
