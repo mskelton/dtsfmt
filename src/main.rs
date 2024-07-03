@@ -10,7 +10,7 @@ use std::{
 use clap::Parser;
 use dtsfmt::{
     config::Config,
-    emitter::{self, create_emitter, Emitter, FormattedFile},
+    emitter::{create_emitter, Emitter, FormattedFile},
 };
 
 #[derive(PartialEq)]
@@ -105,13 +105,48 @@ fn main() {
     }
 }
 
-fn is_ignored(filename: &PathBuf) -> bool {
-    let mut builder =
-        GitignoreBuilder::new(filename.parent().unwrap().parent().unwrap());
-    builder.add(Path::new(".dtsfmtignore"));
-    let gitignore = builder.build().unwrap();
+fn find_ignore_files(start_path: &Path) -> Vec<PathBuf> {
+    let mut ignore_files = Vec::new();
+    let mut current_path = start_path.to_path_buf();
 
-    return gitignore.matched(filename, false).is_ignore();
+    while let Some(parent) = current_path.parent() {
+        let ignore_path = parent.join(".dtsfmtignore");
+        if ignore_path.exists() {
+            ignore_files.push(ignore_path);
+        }
+
+        current_path = parent.to_path_buf();
+    }
+
+    ignore_files
+}
+
+fn find_project_root(start_path: &Path) -> PathBuf {
+    let mut current_path = start_path.to_path_buf();
+
+    while let Some(parent) = current_path.parent() {
+        let config_path = parent.join(".dtsfmtrc.toml");
+        if config_path.exists() {
+            return parent.to_path_buf();
+        }
+
+        current_path = parent.to_path_buf();
+    }
+
+    return current_path;
+}
+
+fn is_ignored(file_path: &Path) -> bool {
+    let ignore_files = find_ignore_files(file_path.parent().unwrap());
+    let root_path = find_project_root(file_path);
+    let mut builder = GitignoreBuilder::new(root_path);
+
+    for ignore_file in ignore_files {
+        builder.add(ignore_file);
+    }
+
+    let ignore = builder.build().unwrap();
+    ignore.matched_path_or_any_parents(file_path, false).is_ignore()
 }
 
 fn print_original(
