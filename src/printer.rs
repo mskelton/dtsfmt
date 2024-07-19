@@ -186,9 +186,6 @@ fn traverse(
             let name = get_text(source, cursor);
             writer.push_str(name);
 
-            cursor.goto_next_sibling();
-            writer.push_str(" = ");
-
             while cursor.goto_next_sibling() {
                 // When we are inside a bindings node, we want to increase the
                 // indentation level and print the bindings according to the
@@ -200,6 +197,7 @@ fn traverse(
 
                 match cursor.node().kind() {
                     "," => writer.push_str(", "),
+                    "=" => writer.push_str(" = "),
                     ";" => break,
                     _ => traverse(writer, &source, cursor, &ctx),
                 }
