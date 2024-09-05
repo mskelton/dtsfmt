@@ -14,7 +14,7 @@ curl -LSfs https://go.mskelton.dev/dtsfmt/install | sh
 Or you can build from source.
 
 ```bash
-git clone git@github.com:mskelton/dtsfmt.git
+git clone --recurse-submodules git@github.com:mskelton/dtsfmt.git
 cd dtsfmt
 cargo install --path .
 ```
