@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 mod adv360;
-mod sweep;
 mod glove80;
+mod sweep;
 
 #[derive(Serialize, Deserialize)]
 pub enum KeyboardLayoutType {
