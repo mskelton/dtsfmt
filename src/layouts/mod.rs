@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 mod adv360;
 mod sweep;
+mod glove80;
 
 #[derive(Serialize, Deserialize)]
 pub enum KeyboardLayoutType {
@@ -9,6 +10,8 @@ pub enum KeyboardLayoutType {
     Adv360,
     #[serde(rename = "sweep")]
     Sweep,
+    #[serde(rename = "moergo:glove80")]
+    Glove80,
 }
 
 pub struct KeyboardLayout {
@@ -26,5 +29,6 @@ pub fn get_layout(layout_type: &KeyboardLayoutType) -> KeyboardLayout {
     match layout_type {
         KeyboardLayoutType::Adv360 => adv360::get_layout(),
         KeyboardLayoutType::Sweep => sweep::get_layout(),
+        KeyboardLayoutType::Glove80 => glove80::get_layout(),
     }
 }
