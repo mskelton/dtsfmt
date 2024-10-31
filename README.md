@@ -33,7 +33,8 @@ The following confirmation options are available for dtsfmt. Confirmation should
 be added to a `.dtsfmtrc.toml` file at the root of your project.
 
 ```toml
-layout = "kinesis:adv360"
+layout = "kinesis:adv360" # Required
+# Available options are ["kinesis:adv360", "sweep", "moergo:glove80"]
 ```
 
 ## Ignoring code
