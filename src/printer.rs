@@ -46,6 +46,22 @@ fn traverse(
 
             writer.push('\n');
         }
+        "dtsi_include" => {
+            cursor.goto_first_child();
+            print_indent(writer, ctx);
+            writer.push_str("/include/ ");
+
+            cursor.goto_next_sibling();
+            writer.push_str(get_text(source, cursor));
+            writer.push('\n');
+
+            cursor.goto_parent();
+
+            // Add a newline if this is the last dtsi_include
+            if lookahead(cursor).is_some_and(|n| n.kind() != "dtsi_include") {
+                writer.push('\n');
+            }
+        }
         "preproc_include" => {
             cursor.goto_first_child();
             print_indent(writer, ctx);
