@@ -27,7 +27,7 @@ fn traverse(
     match node.kind() {
         "comment" => {
             // Add a newline before the comment if the previous node is not a comment
-            if lookbehind(cursor).map_or(false, |n| n.kind() != "comment") {
+            if lookbehind(cursor).is_some_and(|n| n.kind() != "comment") {
                 sep(writer);
             }
 
@@ -58,7 +58,7 @@ fn traverse(
             cursor.goto_parent();
 
             // Add a newline if this is the last preproc directive
-            if lookahead(cursor).map_or(false, |n| !is_preproc(&n)) {
+            if lookahead(cursor).is_some_and(|n| !is_preproc(&n)) {
                 writer.push('\n');
             }
         }
@@ -79,7 +79,7 @@ fn traverse(
             cursor.goto_parent();
 
             // Add a newline if this is the last preproc directive
-            if lookahead(cursor).map_or(false, |n| !is_preproc(&n)) {
+            if lookahead(cursor).is_some_and(|n| !is_preproc(&n)) {
                 writer.push('\n');
             }
         }
@@ -102,7 +102,7 @@ fn traverse(
             cursor.goto_parent();
 
             // Add a newline if this is the last preproc directive
-            if lookahead(cursor).map_or(false, |n| !is_preproc(&n)) {
+            if lookahead(cursor).is_some_and(|n| !is_preproc(&n)) {
                 writer.push('\n');
             }
         }
@@ -117,11 +117,11 @@ fn traverse(
             // Name
             cursor.goto_next_sibling();
             writer.push_str(get_text(source, cursor));
-            writer.push_str("\n");
+            writer.push('\n');
 
             // Body
             while cursor.goto_next_sibling() {
-                traverse(writer, &source, cursor, ctx);
+                traverse(writer, source, cursor, ctx);
             }
 
             // Closing
@@ -130,7 +130,7 @@ fn traverse(
             cursor.goto_parent();
 
             // Add a newline if this is the last preproc directive
-            if lookahead(cursor).map_or(false, |n| !is_preproc(&n)) {
+            if lookahead(cursor).is_some_and(|n| !is_preproc(&n)) {
                 writer.push('\n');
             }
         }
@@ -141,7 +141,7 @@ fn traverse(
             writer.push_str(": ");
 
             while cursor.goto_next_sibling() {
-                traverse(writer, &source, cursor, ctx);
+                traverse(writer, source, cursor, ctx);
             }
 
             cursor.goto_parent();
@@ -149,7 +149,7 @@ fn traverse(
         "node" => {
             // If the previous node is a labeled_item, then the labeled_item will
             // contain the indentation rather than the node.
-            if lookbehind(cursor).map_or(false, |n| n.kind() != ":") {
+            if lookbehind(cursor).is_some_and(|n| n.kind() != ":") {
                 print_indent(writer, ctx);
             }
 
@@ -171,7 +171,7 @@ fn traverse(
                     _ => ctx,
                 };
 
-                traverse(writer, &source, cursor, &ctx);
+                traverse(writer, source, cursor, &ctx);
             }
 
             // Node closing
@@ -199,7 +199,7 @@ fn traverse(
                     "," => writer.push_str(", "),
                     "=" => writer.push_str(" = "),
                     ";" => break,
-                    _ => traverse(writer, &source, cursor, &ctx),
+                    _ => traverse(writer, source, cursor, &ctx),
                 }
             }
 
@@ -207,7 +207,7 @@ fn traverse(
             cursor.goto_parent();
 
             // Add a newline if the next item is a node
-            if lookahead(cursor).map_or(false, |n| n.kind() == "node") {
+            if lookahead(cursor).is_some_and(|n| n.kind() == "node") {
                 writer.push('\n');
             }
         }
@@ -246,10 +246,10 @@ fn traverse(
         }
         _ => {
             if cursor.goto_first_child() {
-                traverse(writer, &source, cursor, ctx);
+                traverse(writer, source, cursor, ctx);
 
                 while cursor.goto_next_sibling() {
-                    traverse(writer, &source, cursor, &ctx.inc(1));
+                    traverse(writer, source, cursor, &ctx.inc(1));
                 }
 
                 cursor.goto_parent();
@@ -298,7 +298,7 @@ fn collect_bindings(
         .bindings
         .iter()
         .map(|is_key| match is_key {
-            1 => buf.pop_front().unwrap_or(String::new()),
+            1 => buf.pop_front().unwrap_or_default(),
             _ => String::new(),
         })
         .collect()
@@ -332,7 +332,7 @@ fn print_bindings(
     ctx: &Context,
 ) {
     cursor.goto_first_child();
-    writer.push_str("<");
+    writer.push('<');
 
     let buf = collect_bindings(cursor, source, ctx);
     let row_size = ctx.layout.row_size();
@@ -353,7 +353,7 @@ fn print_bindings(
             false => sizes[col] + 3,
         };
 
-        writer.push_str(&pad_right(&item, padding));
+        writer.push_str(&pad_right(item, padding));
     });
 
     // Close the bindings
@@ -376,11 +376,11 @@ pub fn print(source: &String, layout: &KeyboardLayoutType) -> String {
     // The first node is the root document node, so we have to traverse all it's
     // children with the same indentation level.
     cursor.goto_first_child();
-    traverse(&mut writer, &source, &mut cursor, &ctx);
+    traverse(&mut writer, source, &mut cursor, &ctx);
 
     while cursor.goto_next_sibling() {
-        traverse(&mut writer, &source, &mut cursor, &ctx);
+        traverse(&mut writer, source, &mut cursor, &ctx);
     }
 
-    return writer;
+    writer
 }

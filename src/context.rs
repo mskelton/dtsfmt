@@ -7,7 +7,7 @@ pub struct Context<'a> {
     pub layout: &'a KeyboardLayout,
 }
 
-impl<'a> Context<'a> {
+impl Context<'_> {
     pub fn with_indent(&self, indent: usize) -> Self {
         Self { indent, ..*self }
     }
