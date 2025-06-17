@@ -1,17 +1,13 @@
-use ignore::gitignore::GitignoreBuilder;
-use ignore::{types::TypesBuilder, WalkBuilder};
-use std::path::Path;
-use std::{
-    fs,
-    io::{self, Read},
-    path::PathBuf,
-};
+use std::fs;
+use std::io::{self, Read};
+use std::path::{Path, PathBuf};
 
 use clap::Parser;
-use dtsfmt::{
-    config::Config,
-    emitter::{create_emitter, Emitter, FormattedFile},
-};
+use dtsfmt::config::Config;
+use dtsfmt::emitter::{create_emitter, Emitter, FormattedFile};
+use ignore::gitignore::GitignoreBuilder;
+use ignore::types::TypesBuilder;
+use ignore::WalkBuilder;
 
 #[derive(PartialEq)]
 enum FormattingStatus {
@@ -59,13 +55,8 @@ fn format_fs(cli: &Cli, config: &Config) -> bool {
         let path = result.path();
         let buffer = fs::read_to_string(path).expect("Failed to read file");
 
-        let status = format(
-            path.to_path_buf(),
-            buffer,
-            &mut emitter,
-            config,
-            cli.check,
-        );
+        let status =
+            format(path.to_path_buf(), buffer, &mut emitter, config, cli.check);
 
         has_errors |= status == FormattingStatus::Changed;
     }
@@ -188,7 +179,8 @@ fn format(
     emit(emitter, result, &output, &source, check)
 }
 
-/// Emits the output of formatting either in check mode or by writing to the file.
+/// Emits the output of formatting either in check mode or by writing to the
+/// file.
 fn emit(
     emitter: &mut Box<dyn Emitter>,
     result: FormattedFile,

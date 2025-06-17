@@ -1,8 +1,8 @@
-pub use self::files::*;
-pub use self::stdout::*;
-
 use std::io;
 use std::path::PathBuf;
+
+pub use self::files::*;
+pub use self::stdout::*;
 
 mod files;
 mod stdout;

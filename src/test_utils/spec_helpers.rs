@@ -1,10 +1,12 @@
+use std::fmt::Display;
+use std::path::Path;
+
 use console::Style;
 use similar::{ChangeTag, TextDiff};
-use std::{fmt::Display, path::Path};
-
-use crate::{layouts::KeyboardLayoutType, printer::print};
 
 use super::get_specs_in_dir;
+use crate::layouts::KeyboardLayoutType;
+use crate::printer::print;
 
 struct FailedTestResult {
     expected: String,
