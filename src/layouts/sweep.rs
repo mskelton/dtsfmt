@@ -9,5 +9,5 @@ pub fn get_layout() -> KeyboardLayout {
       0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
     ];
 
-    return KeyboardLayout { bindings, row_count: 4 };
+    KeyboardLayout { bindings, row_count: 4 }
 }
