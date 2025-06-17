@@ -4,8 +4,9 @@ mod adv360;
 mod glove80;
 mod sweep;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
 pub enum KeyboardLayoutType {
+    #[default]
     #[serde(rename = "kinesis:adv360")]
     Adv360,
     #[serde(rename = "sweep")]

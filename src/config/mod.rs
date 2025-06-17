@@ -15,11 +15,14 @@ pub struct Config {
 
 impl Config {
     pub fn parse(cwd: &Path) -> Self {
-        let rc_file = find_rc_file(cwd).expect("Could not find config file");
-        let buf =
-            fs::read_to_string(rc_file).expect("Failed to read config file");
+        if let Some(rc_file) = find_rc_file(cwd) {
+            let buf = fs::read_to_string(rc_file)
+                .expect("Failed to read config file");
 
-        toml::from_str(&buf).expect("Failed to parse config file")
+            toml::from_str(&buf).expect("Failed to parse config file")
+        } else {
+            Self { layout: Default::default() }
+        }
     }
 }
 
