@@ -5,6 +5,12 @@ use super::*;
 #[derive(Debug)]
 pub struct StdoutEmitter {}
 
+impl Default for StdoutEmitter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StdoutEmitter {
     pub fn new() -> Self {
         Self {}

@@ -51,26 +51,26 @@ fn format_fs(cli: &Cli, config: &Config) -> bool {
         .build()
     {
         let result = result.expect("Failed to walk directory");
-        if !result.file_type().map_or(false, |ft| ft.is_file()) {
+        if !result.file_type().is_some_and(|ft| ft.is_file()) {
             continue;
         }
 
         // Read the file contents from the file
         let path = result.path();
-        let buffer = fs::read_to_string(&path).expect("Failed to read file");
+        let buffer = fs::read_to_string(path).expect("Failed to read file");
 
         let status = format(
             path.to_path_buf(),
             buffer,
             &mut emitter,
-            &config,
+            config,
             cli.check,
         );
 
         has_errors |= status == FormattingStatus::Changed;
     }
 
-    return has_errors;
+    has_errors
 }
 
 fn format_stdin(cli: &Cli, config: &Config) -> bool {
@@ -83,10 +83,10 @@ fn format_stdin(cli: &Cli, config: &Config) -> bool {
     let status = if is_ignored(&cli.file_path) {
         print_original(cli, &mut emitter, &buffer)
     } else {
-        format(PathBuf::from("stdin"), buffer, &mut emitter, &config, cli.check)
+        format(PathBuf::from("stdin"), buffer, &mut emitter, config, cli.check)
     };
 
-    return status == FormattingStatus::Changed;
+    status == FormattingStatus::Changed
 }
 
 fn main() {
@@ -136,7 +136,7 @@ fn find_project_root(start_path: &Path) -> PathBuf {
         current_path = parent.to_path_buf();
     }
 
-    return current_path;
+    current_path
 }
 
 /// Checks if a given file is ignored. This is only necessary in stdin mode
@@ -163,11 +163,11 @@ fn print_original(
 ) -> FormattingStatus {
     let file = FormattedFile {
         filename: &PathBuf::from("stdin"),
-        original_text: &buffer,
-        formatted_text: &buffer,
+        original_text: buffer,
+        formatted_text: buffer,
     };
 
-    return emit(emitter, file, &buffer, &buffer, cli.check);
+    emit(emitter, file, buffer, buffer, cli.check)
 }
 
 /// Formats the given source code and emits the result.
@@ -185,7 +185,7 @@ fn format(
         formatted_text: &output,
     };
 
-    return emit(emitter, result, &output, &source, check);
+    emit(emitter, result, &output, &source, check)
 }
 
 /// Emits the output of formatting either in check mode or by writing to the file.
@@ -211,5 +211,5 @@ fn emit(
         return FormattingStatus::Changed;
     }
 
-    return FormattingStatus::Unchanged;
+    FormattingStatus::Unchanged
 }

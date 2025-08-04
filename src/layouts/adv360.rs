@@ -10,5 +10,5 @@ pub fn get_layout() -> KeyboardLayout {
       1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1,
     ];
 
-    return KeyboardLayout { bindings, row_count: 5 };
+    KeyboardLayout { bindings, row_count: 5 }
 }

@@ -31,9 +31,7 @@ pub fn lookahead<'a>(cursor: &'a TreeCursor) -> Option<Node<'a>> {
 }
 
 pub fn print_indent(writer: &mut String, ctx: &Context) {
-    if let Ok(size) = ctx.indent.try_into() {
-        writer.push_str("  ".repeat(size).as_str());
-    }
+    writer.push_str("  ".repeat(ctx.indent).as_str());
 }
 
 pub fn sep(writer: &mut String) {
@@ -43,7 +41,7 @@ pub fn sep(writer: &mut String) {
 }
 
 pub fn get_text<'a>(source: &'a String, cursor: &mut TreeCursor) -> &'a str {
-    return cursor.node().utf8_text(source.as_bytes()).unwrap_or("").trim();
+    cursor.node().utf8_text(source.as_bytes()).unwrap_or("").trim()
 }
 
 pub fn pad_right(string: &str, size: usize) -> String {
