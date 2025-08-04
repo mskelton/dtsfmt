@@ -59,13 +59,8 @@ fn format_fs(cli: &Cli, config: &Config) -> bool {
         let path = result.path();
         let buffer = fs::read_to_string(path).expect("Failed to read file");
 
-        let status = format(
-            path.to_path_buf(),
-            buffer,
-            &mut emitter,
-            config,
-            cli.check,
-        );
+        let status =
+            format(path.to_path_buf(), buffer, &mut emitter, config, cli.check);
 
         has_errors |= status == FormattingStatus::Changed;
     }
