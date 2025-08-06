@@ -49,10 +49,7 @@ pub fn run_specs(directory_path: &Path) {
     let specs = get_specs_in_dir(directory_path);
     let test_count = specs.len();
     let mut failed_tests = Vec::new();
-    let config = Config {
-        layout: KeyboardLayoutType::Adv360,
-        warn_on_unhandled_tokens: false,
-    };
+    let config = Config::builder().layout(KeyboardLayoutType::Adv360).build();
 
     for (_, spec) in specs {
         let result = print(&spec.file_text, &config);
