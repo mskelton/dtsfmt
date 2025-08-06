@@ -150,49 +150,46 @@ fn traverse(
                 writer.push('\n');
             }
         }
-        "labeled_item" => {
-            cursor.goto_first_child();
-            print_indent(writer, ctx);
+        "identifier" => {
             writer.push_str(get_text(source, cursor));
-            writer.push_str(": ");
-
-            while cursor.goto_next_sibling() {
-                traverse(writer, source, cursor, ctx);
+            // Identifier itself only contains the token string so we need to
+            // peek forward to see if we're a label or a node name.
+            if let Some(n) = lookahead(cursor) {
+                match n.kind() {
+                    ":" => writer.push_str(": "),
+                    "{" => writer.push_str(" {\n"),
+                    _ => (),
+                };
             }
-
-            cursor.goto_parent();
         }
         "node" => {
-            // If the previous node is a labeled_item, then the labeled_item will
-            // contain the indentation rather than the node.
-            if lookbehind(cursor).is_some_and(|n| n.kind() != ":") {
+            // A node will typically have children in a format of:
+            // [<identifier>:] [&]<identifier> { [nodes and properties] }
+            cursor.goto_first_child();
+
+            // Nodes are preceded by a label or name identifier that need to be
+            // indented. We can check for this by seeing if any siblings are
+            // before us.
+            if cursor.node().prev_sibling().is_none() {
                 print_indent(writer, ctx);
             }
 
-            cursor.goto_first_child();
+            // Increment the indentation for children and also check whether
+            // we've identified a node keymap node for Zephyr-specific keymaps.
+            let ctx = ctx.inc(1);
+            let ctx = match get_text(source, cursor) {
+                "keymap" => ctx.keymap(),
+                _ => ctx,
+            };
 
-            // Node name and opening
-            let name = get_text(source, cursor);
-            writer.push_str(name);
-            writer.push_str(" {\n");
-
-            // Node body
-            while cursor.goto_next_sibling() {
-                let ctx = ctx.inc(1);
-
-                // When we find the keymap node, we need to set the keymap flag
-                // so we can properly print the binding cells.
-                let ctx = match name {
-                    "keymap" => ctx.keymap(),
-                    _ => ctx,
-                };
-
+            loop {
                 traverse(writer, source, cursor, &ctx);
+                if !cursor.goto_next_sibling() {
+                    break;
+                }
             }
 
-            // Node closing
-            print_indent(writer, ctx);
-            writer.push_str("};\n");
+            // Return to the "node"'s node to continue traversal.
             cursor.goto_parent();
         }
         "property" => {
@@ -259,6 +256,13 @@ fn traverse(
 
             writer.push('>');
             cursor.goto_parent();
+        }
+        "}" => {
+            print_indent(writer, &ctx.dec(1));
+            writer.push('}');
+        }
+        ";" => {
+            writer.push_str(";\n");
         }
         _ => {
             if cursor.goto_first_child() {
