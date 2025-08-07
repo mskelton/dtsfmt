@@ -1,5 +1,6 @@
-use super::*;
 use std::fs;
+
+use super::*;
 
 #[derive(Debug, Default)]
 pub struct FilesEmitter {}

@@ -35,7 +35,8 @@ pub fn parse_specs(file_text: String) -> Vec<Spec> {
 
         if !lines.first().unwrap().starts_with(message_separator) {
             panic!(
-                "All spec files should start with a message. (ex. {0} Message {0})",
+                "All spec files should start with a message. (ex. {0} Message \
+                 {0})",
                 message_separator
             );
         }
