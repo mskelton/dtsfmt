@@ -15,3 +15,25 @@ macro_triple_grave: macro_triple_grave {
   bindings = <&kp GRAVE>, <&kp GRAVE>, <&kp GRAVE>;
   hold-while-undecided;
 };
+
+== labels inside nested nodes ==
+/ {
+  label: device {
+    compatible = "label test";
+
+    sublabel: subdevice {
+      maybe-we-have-an-interrupt;
+    };
+  };
+};
+
+[expect]
+/ {
+  label: device {
+    compatible = "label test";
+
+    sublabel: subdevice {
+      maybe-we-have-an-interrupt;
+    };
+  };
+};
