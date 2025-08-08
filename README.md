@@ -32,9 +32,20 @@ dtsfmt .
 The following configuration options are available for dtsfmt. Configuration should
 be added to a `.dtsfmtrc.toml` file at the root of your project.
 
+
+```toml
+indent_str = "  " # Optional, used for each indent level when printing.
+# Default is two spaces.
+```
+
 ```toml
 layout = "kinesis:adv360" # Required
 # Available options are ["kinesis:adv360", "sweep", "moergo:glove80"]
+```
+
+```toml
+warn_on_unhandled_tokens = false # Optional
+# Used to check if an input file contains any tokens not handled by the parser/printer.
 ```
 
 ## Ignoring code
@@ -54,10 +65,10 @@ list of unformatted files, if any.
 dtsfmt --check .
 ```
 
-### `--emit`
+### `--stdin`
 
-You can change the way dtsfmt emits the changes with the `--emit` flag.
+If passed the `--stdin` flag dtsfmt will read from stdin and write to stdout.
 
 ```bash
-dtsfmt --emit=stdout
+dtsfmt --stdin < input.dts > output.dts
 ```
