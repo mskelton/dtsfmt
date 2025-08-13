@@ -11,6 +11,9 @@ mod constants;
 pub struct Config {
     #[serde(default)]
     pub layout: KeyboardLayoutType,
+
+    #[serde(default)]
+    pub warn_on_unhandled_tokens: bool,
 }
 
 impl Config {

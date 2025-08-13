@@ -169,7 +169,7 @@ fn format(
     config: &Config,
     check: bool,
 ) -> FormattingStatus {
-    let output = dtsfmt::printer::print(&source, &config.layout);
+    let output = dtsfmt::printer::print(&source, config);
     let result = FormattedFile {
         filename: &filename,
         original_text: &source,

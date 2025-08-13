@@ -2,8 +2,9 @@ use std::collections::VecDeque;
 
 use tree_sitter::TreeCursor;
 
+use crate::config::Config;
 use crate::context::Context;
-use crate::layouts::{self, KeyboardLayoutType};
+use crate::layouts;
 use crate::parser::parse;
 use crate::utils::{
     get_text,
@@ -271,6 +272,16 @@ fn traverse(
             writer.push_str(";\n");
         }
         _ => {
+            if ctx.config.warn_on_unhandled_tokens {
+                eprintln!(
+                    "unhandled type '{}' ({} {}): {}",
+                    node.kind(),
+                    node.child_count(),
+                    if node.child_count() == 1 { "child" } else { "children" },
+                    get_text(source, cursor)
+                );
+            }
+            // Since we're unsure of this node just traverse its children
             if cursor.goto_first_child() {
                 traverse(writer, source, cursor, ctx);
 
@@ -320,7 +331,7 @@ fn collect_bindings(
 
     // Move the items from the temporary buffer into a new vector that contains
     // the empty key spaces.
-    ctx.layout
+    layouts::get_layout(&ctx.config.layout)
         .bindings
         .iter()
         .map(|is_key| match is_key {
@@ -361,7 +372,7 @@ fn print_bindings(
     writer.push('<');
 
     let buf = collect_bindings(cursor, source, ctx);
-    let row_size = ctx.layout.row_size();
+    let row_size = layouts::get_layout(&ctx.config.layout).row_size();
     let sizes = calculate_sizes(&buf, row_size);
 
     buf.iter().enumerate().for_each(|(i, item)| {
@@ -390,14 +401,12 @@ fn print_bindings(
     cursor.goto_parent();
 }
 
-pub fn print(source: &String, layout: &KeyboardLayoutType) -> String {
+pub fn print(source: &String, config: &Config) -> String {
     let mut writer = String::new();
     let tree = parse(source.clone());
     let mut cursor = tree.walk();
 
-    let layout = layouts::get_layout(layout);
-    let ctx =
-        Context { indent: 0, bindings: false, keymap: false, layout: &layout };
+    let ctx = Context { indent: 0, keymap: false, bindings: false, config };
 
     // The first node is the root document node, so we have to traverse all it's
     // children with the same indentation level.

@@ -1,10 +1,10 @@
-use crate::layouts::KeyboardLayout;
+use crate::config::Config;
 
 pub struct Context<'a> {
     pub indent: usize,
     pub keymap: bool,
     pub bindings: bool,
-    pub layout: &'a KeyboardLayout,
+    pub config: &'a Config,
 }
 
 impl Context<'_> {
