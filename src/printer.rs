@@ -31,6 +31,9 @@ fn traverse(
     let node = cursor.node();
 
     match node.kind() {
+        "file_version" => {
+            writer.push_str(&format!("{}\n\n", get_text(source, cursor)));
+        }
         "comment" => {
             // Add a newline before the comment if the previous node is not a
             // comment
