@@ -1,10 +1,9 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::fs;
+use std::path::{Path, PathBuf};
+
+use serde::Deserialize;
 
 use crate::layouts::KeyboardLayoutType;
-use serde::Deserialize;
 
 mod constants;
 

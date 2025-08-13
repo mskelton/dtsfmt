@@ -2,11 +2,16 @@ use std::collections::VecDeque;
 
 use tree_sitter::TreeCursor;
 
-use crate::{
-    context::Context,
-    layouts::{self, KeyboardLayoutType},
-    parser::parse,
-    utils::{get_text, lookahead, lookbehind, pad_right, print_indent, sep},
+use crate::context::Context;
+use crate::layouts::{self, KeyboardLayoutType};
+use crate::parser::parse;
+use crate::utils::{
+    get_text,
+    lookahead,
+    lookbehind,
+    pad_right,
+    print_indent,
+    sep,
 };
 
 fn is_preproc(n: &tree_sitter::Node) -> bool {
@@ -26,7 +31,8 @@ fn traverse(
 
     match node.kind() {
         "comment" => {
-            // Add a newline before the comment if the previous node is not a comment
+            // Add a newline before the comment if the previous node is not a
+            // comment
             if lookbehind(cursor).is_some_and(|n| n.kind() != "comment") {
                 sep(writer);
             }

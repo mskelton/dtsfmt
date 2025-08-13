@@ -1,6 +1,7 @@
-use super::*;
 use std::fs;
 use std::path::{Path, PathBuf};
+
+use super::*;
 
 pub fn get_specs_in_dir(path: &Path) -> Vec<(PathBuf, Spec)> {
     let mut result: Vec<(PathBuf, Spec)> = Vec::new();
