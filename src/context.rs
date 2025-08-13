@@ -8,10 +8,6 @@ pub struct Context<'a> {
 }
 
 impl Context<'_> {
-    pub fn with_indent(&self, indent: usize) -> Self {
-        Self { indent, ..*self }
-    }
-
     pub fn inc(&self, increment: usize) -> Self {
         Self { indent: self.indent + increment, ..*self }
     }
@@ -26,5 +22,12 @@ impl Context<'_> {
 
     pub fn bindings(&self) -> Self {
         Self { bindings: true, ..*self }
+    }
+
+    // If a node named 'bindings' has a parent node named 'keymap' then we've
+    // encountered a Zephyr keymap that will be handled as a special case by the
+    // printer.
+    pub fn has_zephyr_syntax(&self) -> bool {
+        self.bindings && self.keymap
     }
 }
