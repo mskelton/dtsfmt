@@ -5,6 +5,7 @@ use console::Style;
 use similar::{ChangeTag, TextDiff};
 
 use super::get_specs_in_dir;
+use crate::config::Config;
 use crate::layouts::KeyboardLayoutType;
 use crate::printer::print;
 
@@ -48,9 +49,13 @@ pub fn run_specs(directory_path: &Path) {
     let specs = get_specs_in_dir(directory_path);
     let test_count = specs.len();
     let mut failed_tests = Vec::new();
+    let config = Config {
+        layout: KeyboardLayoutType::Adv360,
+        warn_on_unhandled_tokens: false,
+    };
 
     for (_, spec) in specs {
-        let result = print(&spec.file_text, &KeyboardLayoutType::Adv360);
+        let result = print(&spec.file_text, &config);
 
         if result != spec.expected_text {
             failed_tests.push(FailedTestResult {

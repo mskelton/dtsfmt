@@ -1,0 +1,17 @@
+== Ensure the header is retained ==
+/dts-v1/;
+
+/ {
+  model = "Something new";
+  compatible = "dtsfmt devices";
+  #size-cells = <0x02>;
+};
+
+[expect]
+/dts-v1/;
+
+/ {
+  model = "Something new";
+  compatible = "dtsfmt devices";
+  #size-cells = <0x02>;
+};

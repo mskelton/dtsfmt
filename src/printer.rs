@@ -2,8 +2,9 @@ use std::collections::VecDeque;
 
 use tree_sitter::TreeCursor;
 
+use crate::config::Config;
 use crate::context::Context;
-use crate::layouts::{self, KeyboardLayoutType};
+use crate::layouts;
 use crate::parser::parse;
 use crate::utils::{
     get_text,
@@ -30,6 +31,9 @@ fn traverse(
     let node = cursor.node();
 
     match node.kind() {
+        "file_version" => {
+            writer.push_str(&format!("{}\n\n", get_text(source, cursor)));
+        }
         "comment" => {
             // Add a newline before the comment if the previous node is not a
             // comment
@@ -156,19 +160,12 @@ fn traverse(
                 writer.push('\n');
             }
         }
-        "identifier" => {
+        "identifier" | "string_literal" | "unit_address" => {
             writer.push_str(get_text(source, cursor));
-            // Identifier itself only contains the token string so we need to
-            // peek forward to see if we're a label or a node name.
-            if let Some(n) = lookahead(cursor) {
-                match n.kind() {
-                    ":" => writer.push_str(": "),
-                    "{" => writer.push_str(" {\n"),
-                    _ => (),
-                };
-            }
         }
-        "node" => {
+        // This is a general handler for any type that just needs to traverse
+        // its children.
+        "node" | "property" => {
             // A node will typically have children in a format of:
             // [<identifier>:] [&]<identifier> { [nodes and properties] }
             cursor.goto_first_child();
@@ -185,6 +182,7 @@ fn traverse(
             let ctx = ctx.inc(1);
             let ctx = match get_text(source, cursor) {
                 "keymap" => ctx.keymap(),
+                "bindings" => ctx.bindings(),
                 _ => ctx,
             };
 
@@ -195,49 +193,47 @@ fn traverse(
                 }
             }
 
-            // Return to the "node"'s node to continue traversal.
-            cursor.goto_parent();
-        }
-        "property" => {
-            cursor.goto_first_child();
-            print_indent(writer, ctx);
-
-            let name = get_text(source, cursor);
-            writer.push_str(name);
-
-            while cursor.goto_next_sibling() {
-                // When we are inside a bindings node, we want to increase the
-                // indentation level and print the bindings according to the
-                // keyboard layout.
-                let ctx = match name {
-                    "bindings" => ctx.inc(1).bindings(),
-                    _ => ctx.with_indent(0),
-                };
-
-                match cursor.node().kind() {
-                    "," => writer.push_str(", "),
-                    "=" => writer.push_str(" = "),
-                    ";" => break,
-                    _ => traverse(writer, source, cursor, &ctx),
-                }
-            }
-
-            writer.push_str(";\n");
+            // Return to the "node"'s node element to continue traversal.
             cursor.goto_parent();
 
-            // Add a newline if the next item is a node
-            if lookahead(cursor).is_some_and(|n| n.kind() == "node") {
+            // Place a newline before node siblings if they follow a property.
+            if node.kind() == "property"
+                && lookahead(cursor).is_some_and(|n| n.kind() == "node")
+            {
                 writer.push('\n');
             }
         }
-        "string_literal" => {
-            writer.push_str(get_text(source, cursor));
+        "byte_string_literal" => {
+            let hex_string = get_text(source, cursor);
+            // Trim the [ and ] off of the source string we obtained.
+            let hex_bytes = hex_string[1..hex_string.len() - 1]
+                .split_whitespace()
+                .collect::<Vec<&str>>();
+            let hex_chunks = hex_bytes.chunks(16).collect::<Vec<&[&str]>>();
+
+            // For smaller byte chunks it reads better if we just one line
+            // everything, but for anything beyond 16 bytes we split it into
+            // multiple lines.
+            if hex_chunks.len() == 1 {
+                writer.push_str(&format!("[{}]", hex_chunks[0].join(" ")));
+            } else {
+                writer.push_str("[\n");
+                for (i, &line) in hex_chunks.iter().enumerate() {
+                    print_indent(writer, ctx);
+                    writer.push_str(&format!("{}\n", &line.join(" ")));
+                    if i == hex_chunks.len() - 1 {
+                        print_indent(writer, &ctx.dec(1));
+                        writer.push(']');
+                    }
+                }
+            }
         }
+
         "integer_cells" => {
             cursor.goto_first_child();
 
             // Keymap bindings are a special snowflake
-            if ctx.keymap && ctx.bindings {
+            if ctx.has_zephyr_syntax() {
                 print_bindings(writer, source, cursor, ctx);
                 return;
             }
@@ -263,14 +259,38 @@ fn traverse(
             writer.push('>');
             cursor.goto_parent();
         }
+        // All the non-named grammatical tokens that are emitted but handled
+        // simply with some output structure.
         "}" => {
             print_indent(writer, &ctx.dec(1));
             writer.push('}');
         }
+        "{" => {
+            writer.push_str(" {\n");
+        }
+        ":" => {
+            writer.push_str(": ");
+        }
         ";" => {
             writer.push_str(";\n");
         }
+        "," => {
+            writer.push_str(", ");
+        }
+        "=" => {
+            writer.push_str(" = ");
+        }
         _ => {
+            if ctx.config.warn_on_unhandled_tokens {
+                eprintln!(
+                    "unhandled type '{}' ({} {}): {}",
+                    node.kind(),
+                    node.child_count(),
+                    if node.child_count() == 1 { "child" } else { "children" },
+                    get_text(source, cursor)
+                );
+            }
+            // Since we're unsure of this node just traverse its children
             if cursor.goto_first_child() {
                 traverse(writer, source, cursor, ctx);
 
@@ -320,7 +340,7 @@ fn collect_bindings(
 
     // Move the items from the temporary buffer into a new vector that contains
     // the empty key spaces.
-    ctx.layout
+    layouts::get_layout(&ctx.config.layout)
         .bindings
         .iter()
         .map(|is_key| match is_key {
@@ -361,7 +381,7 @@ fn print_bindings(
     writer.push('<');
 
     let buf = collect_bindings(cursor, source, ctx);
-    let row_size = ctx.layout.row_size();
+    let row_size = layouts::get_layout(&ctx.config.layout).row_size();
     let sizes = calculate_sizes(&buf, row_size);
 
     buf.iter().enumerate().for_each(|(i, item)| {
@@ -390,14 +410,12 @@ fn print_bindings(
     cursor.goto_parent();
 }
 
-pub fn print(source: &String, layout: &KeyboardLayoutType) -> String {
+pub fn print(source: &String, config: &Config) -> String {
     let mut writer = String::new();
     let tree = parse(source.clone());
     let mut cursor = tree.walk();
 
-    let layout = layouts::get_layout(layout);
-    let ctx =
-        Context { indent: 0, bindings: false, keymap: false, layout: &layout };
+    let ctx = Context { indent: 0, keymap: false, bindings: false, config };
 
     // The first node is the root document node, so we have to traverse all it's
     // children with the same indentation level.
