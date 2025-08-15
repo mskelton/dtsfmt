@@ -261,6 +261,9 @@ fn traverse(
         }
         // All the non-named grammatical tokens that are emitted but handled
         // simply with some output structure.
+        "@" => {
+            writer.push('@');
+        }
         "}" => {
             print_indent(writer, &ctx.dec(1));
             writer.push('}');

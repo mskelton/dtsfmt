@@ -1,0 +1,9 @@
+== node with a unit-address and label ==
+label: node@1000 {
+  compatible = "dtsfmt";
+};
+
+[expect]
+label: node@1000 {
+  compatible = "dtsfmt";
+};
