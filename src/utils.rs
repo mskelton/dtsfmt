@@ -31,7 +31,7 @@ pub fn lookahead<'a>(cursor: &'a TreeCursor) -> Option<Node<'a>> {
 }
 
 pub fn print_indent(writer: &mut String, ctx: &Context) {
-    writer.push_str("  ".repeat(ctx.indent).as_str());
+    writer.push_str(&ctx.config.indent_str.repeat(ctx.indent));
 }
 
 pub fn sep(writer: &mut String) {

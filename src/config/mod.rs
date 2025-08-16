@@ -2,16 +2,23 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
+use typed_builder::TypedBuilder;
 
 use crate::layouts::KeyboardLayoutType;
 
 mod constants;
 
-#[derive(Deserialize, Default)]
+#[derive(Default, Deserialize, TypedBuilder)]
 pub struct Config {
+    #[builder(default)]
     #[serde(default)]
     pub layout: KeyboardLayoutType,
 
+    #[builder(default_code = "Config::default_indent_str()")]
+    #[serde(default = "Config::default_indent_str")]
+    pub indent_str: String,
+
+    #[builder(default)]
     #[serde(default)]
     pub warn_on_unhandled_tokens: bool,
 }
@@ -25,6 +32,10 @@ impl Config {
         } else {
             Self::default()
         }
+    }
+
+    pub fn default_indent_str() -> String {
+        "  ".to_owned()
     }
 }
 

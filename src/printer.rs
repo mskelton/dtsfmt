@@ -418,7 +418,8 @@ pub fn print(source: &String, config: &Config) -> String {
     let tree = parse(source.clone());
     let mut cursor = tree.walk();
 
-    let ctx = Context { indent: 0, keymap: false, bindings: false, config };
+    let ctx =
+        Context { indent: 0, bindings: false, keymap: false, config: config };
 
     // The first node is the root document node, so we have to traverse all it's
     // children with the same indentation level.
