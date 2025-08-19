@@ -15,7 +15,7 @@ enum FormattingStatus {
     Unchanged,
 }
 
-#[derive(Parser)]
+#[derive(Clone, Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
     /// Check for formatting errors without writing to the file
@@ -28,10 +28,10 @@ struct Cli {
 
     /// The file to format
     #[arg(index = 1, value_name = "FILE")]
-    file_path: PathBuf,
+    file_path: Option<PathBuf>,
 }
 
-fn format_fs(cli: &Cli, config: &Config) -> bool {
+fn format_fs(cli: &Cli, config: &Config, dir_path: &Path) -> bool {
     let mut emitter = create_emitter(false);
     let mut has_errors = false;
 
@@ -40,7 +40,7 @@ fn format_fs(cli: &Cli, config: &Config) -> bool {
     types.add("devicetree", "*.keymap").unwrap();
     types.select("devicetree");
 
-    for result in WalkBuilder::new(&cli.file_path)
+    for result in WalkBuilder::new(dir_path)
         .types(types.build().unwrap())
         .add_custom_ignore_filename(".dtsfmtignore")
         .standard_filters(false)
@@ -64,14 +64,14 @@ fn format_fs(cli: &Cli, config: &Config) -> bool {
     has_errors
 }
 
-fn format_stdin(cli: &Cli, config: &Config) -> bool {
+fn format_stdin(cli: &Cli, config: &Config, dir_path: &Path) -> bool {
     let mut emitter = create_emitter(true);
     let mut buffer = String::new();
     io::stdin().read_to_string(&mut buffer).expect("Failed to read stdin");
 
     // If the file is ignored, we need to print the original content unchanged
     // since we still need to return content when running in stdin mode.
-    let status = if is_ignored(&cli.file_path) {
+    let status = if is_ignored(dir_path) {
         print_original(cli, &mut emitter, &buffer)
     } else {
         format(PathBuf::from("stdin"), buffer, &mut emitter, config, cli.check)
@@ -82,12 +82,24 @@ fn format_stdin(cli: &Cli, config: &Config) -> bool {
 
 fn main() {
     let cli = Cli::parse();
-    let config = Config::parse(&cli.file_path.to_path_buf());
+
+    let cfg_path = match &cli.file_path {
+        Some(path) => path.clone(),
+        None => std::env::current_dir().expect("Couldn't read CWD"),
+    };
+    let config = Config::parse(&cfg_path);
+
+    // If no path was specified (likely with --stdin) then default to the
+    // current working directory.
+    let dir_path = match &cli.file_path {
+        Some(path) => path.clone(),
+        None => std::env::current_dir().expect("Couldn't read CWD"),
+    };
 
     let has_errors = if cli.stdin {
-        format_stdin(&cli, &config)
+        format_stdin(&cli, &config, &dir_path)
     } else {
-        format_fs(&cli, &config)
+        format_fs(&cli, &config, &dir_path)
     };
 
     if cli.check && has_errors {
