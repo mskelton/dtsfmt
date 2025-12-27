@@ -40,7 +40,7 @@ indent_str = "  " # Optional, used for each indent level when printing.
 
 ```toml
 layout = "kinesis:adv360" # Required
-# Available options are ["kinesis:adv360", "sweep", "moergo:glove80"]
+# Available options are ["kinesis:adv360", "sweep", "moergo:glove80", "imprint:letters_only_full_bottom_row"]
 ```
 
 ```toml
