@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 mod adv360;
 mod glove80;
-mod sweep;
 mod imprint_letters_only_full_bottom_row;
+mod sweep;
 
 #[derive(Serialize, Deserialize, Default)]
 pub enum KeyboardLayoutType {
@@ -34,6 +34,8 @@ pub fn get_layout(layout_type: &KeyboardLayoutType) -> KeyboardLayout {
         KeyboardLayoutType::Adv360 => adv360::get_layout(),
         KeyboardLayoutType::Sweep => sweep::get_layout(),
         KeyboardLayoutType::Glove80 => glove80::get_layout(),
-        KeyboardLayoutType::ImprintLettersOnlyFullBottomRow => imprint_letters_only_full_bottom_row::get_layout(),
+        KeyboardLayoutType::ImprintLettersOnlyFullBottomRow => {
+            imprint_letters_only_full_bottom_row::get_layout()
+        }
     }
 }
