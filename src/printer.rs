@@ -160,8 +160,21 @@ fn traverse(
                 writer.push('\n');
             }
         }
-        "identifier" | "string_literal" | "unit_address" => {
+        "identifier" | "string_literal" | "unit_address" | "path" => {
             writer.push_str(get_text(source, cursor));
+        }
+        "reference" => {
+            // A reference has a format of "&label" or "&{path}".
+
+            // Visit all children of the reference without changing the
+            // indentation.
+            if cursor.goto_first_child() {
+                traverse(writer, source, cursor, ctx);
+                while cursor.goto_next_sibling() {
+                    traverse(writer, source, cursor, ctx);
+                }
+                cursor.goto_parent();
+            }
         }
         // This is a general handler for any type that just needs to traverse
         // its children.
@@ -263,6 +276,12 @@ fn traverse(
         // simply with some output structure.
         "@" => {
             writer.push('@');
+        }
+        "&" => {
+            writer.push('&');
+        }
+        "&{" => {
+            writer.push_str("&{");
         }
         "}" => {
             print_indent(writer, &ctx.dec(1));
