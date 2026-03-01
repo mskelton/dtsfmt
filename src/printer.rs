@@ -7,12 +7,7 @@ use crate::context::Context;
 use crate::layouts;
 use crate::parser::parse;
 use crate::utils::{
-    get_text,
-    lookahead,
-    lookbehind,
-    pad_right,
-    print_indent,
-    sep,
+    get_text, lookahead, lookbehind, pad_right, print_indent, sep,
 };
 
 fn is_preproc(n: &tree_sitter::Node) -> bool {
@@ -20,6 +15,38 @@ fn is_preproc(n: &tree_sitter::Node) -> bool {
         || n.kind() == "preproc_ifdef"
         || n.kind() == "preproc_def"
         || n.kind() == "preproc_function_def"
+}
+
+fn should_add_new_line_after_current_node(node: &tree_sitter::Node) -> bool {
+    const NODE_TYPES_TO_ADD_NEW_LINE_AFTER: [&str; 2] = ["node", "property"];
+    if !NODE_TYPES_TO_ADD_NEW_LINE_AFTER.contains(&node.kind()) {
+        return false;
+    }
+
+    let next_node = node.next_sibling();
+    if next_node.is_none() {
+        return false;
+    }
+
+    let next_node = next_node.unwrap();
+    if !NODE_TYPES_TO_ADD_NEW_LINE_AFTER.contains(&next_node.kind()) {
+        return false;
+    }
+
+    // Add an extra new line if the next node is a different
+    // kind (property after node, or node after property).
+    if node.kind() != next_node.kind() {
+        return true;
+    }
+
+    // Add an extra new line if there are blank lines
+    // between nodes.
+    let row_between = next_node.start_position().row - node.end_position().row;
+    if row_between > 1 {
+        return true;
+    }
+
+    false
 }
 
 fn traverse(
@@ -160,8 +187,21 @@ fn traverse(
                 writer.push('\n');
             }
         }
-        "identifier" | "string_literal" | "unit_address" => {
+        "identifier" | "string_literal" | "unit_address" | "path" => {
             writer.push_str(get_text(source, cursor));
+        }
+        "reference" => {
+            // A reference has a format of "&label" or "&{path}".
+
+            // Visit all children of the reference without changing the
+            // indentation.
+            if cursor.goto_first_child() {
+                traverse(writer, source, cursor, ctx);
+                while cursor.goto_next_sibling() {
+                    traverse(writer, source, cursor, ctx);
+                }
+                cursor.goto_parent();
+            }
         }
         // This is a general handler for any type that just needs to traverse
         // its children.
@@ -196,10 +236,7 @@ fn traverse(
             // Return to the "node"'s node element to continue traversal.
             cursor.goto_parent();
 
-            // Place a newline before node siblings if they follow a property.
-            if node.kind() == "property"
-                && lookahead(cursor).is_some_and(|n| n.kind() == "node")
-            {
+            if should_add_new_line_after_current_node(&node) {
                 writer.push('\n');
             }
         }
@@ -263,6 +300,12 @@ fn traverse(
         // simply with some output structure.
         "@" => {
             writer.push('@');
+        }
+        "&" => {
+            writer.push('&');
+        }
+        "&{" => {
+            writer.push_str("&{");
         }
         "}" => {
             print_indent(writer, &ctx.dec(1));
