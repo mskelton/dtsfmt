@@ -1,0 +1,71 @@
+== format delete-node ==
+name {
+  /delete-node/
+node-1;
+  /delete-node/     node-2    @ 8000;
+  /delete-node/   &    node_label;
+};
+
+[expect]
+name {
+  /delete-node/ node-1;
+  /delete-node/ node-2@8000;
+  /delete-node/ &node_label;
+};
+
+== format delete-property ==
+name {
+  /delete-property/
+property-1;
+  /delete-property/     property-2;
+};
+
+[expect]
+name {
+  /delete-property/ property-1;
+  /delete-property/ property-2;
+};
+
+== add blank lines between delete-node and nodes of other types ==
+name {
+  /delete-node/ node-1;
+  /delete-node/ node-2;
+  node-3 {
+    property-1;
+  };
+  /delete-node/ node-4;
+};
+
+[expect]
+name {
+  /delete-node/ node-1;
+  /delete-node/ node-2;
+
+  node-3 {
+    property-1;
+  };
+
+  /delete-node/ node-4;
+};
+
+== add blank lines between delete-property and nodes of other types ==
+name {
+  /delete-property/ property-1;
+  /delete-property/ property-2;
+  node-3 {
+    property-1;
+  };
+  /delete-property/ property-4;
+};
+
+[expect]
+name {
+  /delete-property/ property-1;
+  /delete-property/ property-2;
+
+  node-3 {
+    property-1;
+  };
+
+  /delete-property/ property-4;
+};

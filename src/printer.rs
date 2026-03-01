@@ -18,7 +18,12 @@ fn is_preproc(n: &tree_sitter::Node) -> bool {
 }
 
 fn should_add_new_line_after_current_node(node: &tree_sitter::Node) -> bool {
-    const NODE_TYPES_TO_ADD_NEW_LINE_AFTER: [&str; 2] = ["node", "property"];
+    const NODE_TYPES_TO_ADD_NEW_LINE_AFTER: [&str; 4] = [
+        "node",
+        "property",
+        "delete_node",
+        "delete_property",
+    ];
     if !NODE_TYPES_TO_ADD_NEW_LINE_AFTER.contains(&node.kind()) {
         return false;
     }
@@ -205,7 +210,7 @@ fn traverse(
         }
         // This is a general handler for any type that just needs to traverse
         // its children.
-        "node" | "property" => {
+        "node" | "property" | "delete_node" | "delete_property" => {
             // A node will typically have children in a format of:
             // [<identifier>:] [&]<identifier> { [nodes and properties] }
             cursor.goto_first_child();
@@ -325,6 +330,12 @@ fn traverse(
         }
         "=" => {
             writer.push_str(" = ");
+        }
+        "/delete-node/" => {
+            writer.push_str("/delete-node/ ");
+        }
+        "/delete-property/" => {
+            writer.push_str("/delete-property/ ");
         }
         _ => {
             if ctx.config.warn_on_unhandled_tokens {
