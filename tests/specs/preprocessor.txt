@@ -79,6 +79,7 @@ dm: dual_mod_key {
 #ifdef VERSION_MACRO
 macro_ver: macro_ver {
   compatible = "zmk,behavior-macro";
+
   label = "macro_version";
   #binding-cells = <0>;
   bindings = <&kp RET>;
@@ -114,6 +115,7 @@ dm: dual_mod_key {
   #ifdef VERSION_MACRO
   macro_ver: macro_ver {
     compatible = "zmk,behavior-macro";
+
     label = "macro_version";
     #binding-cells = <0>;
     bindings = <&kp RET>;
@@ -147,6 +149,7 @@ dm: dual_mod_key {
 #ifndef VERSION_MACRO
 macro_ver: macro_ver {
   compatible = "zmk,behavior-macro";
+
   label = "macro_version";
   #binding-cells = <0>;
   bindings = <&kp RET>;
@@ -180,6 +183,7 @@ dm: dual_mod_key {
   #ifndef VERSION_MACRO
   macro_ver: macro_ver {
     compatible = "zmk,behavior-macro";
+
     label = "macro_version";
     #binding-cells = <0>;
     bindings = <&kp RET>;

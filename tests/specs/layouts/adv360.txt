@@ -23,6 +23,7 @@ behaviors { dm: dual_mod_key {
       bindings = <&kp>, <&kp>;
     };
   };
+
   keymap {
     compatible = "zmk,keymap";
 
