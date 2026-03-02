@@ -48,8 +48,13 @@ fn traverse(
             // lot tougher to format properly.
             match comment.starts_with("//") {
                 true => {
-                    writer.push_str("// ");
-                    writer.push_str(comment.trim_start_matches("//").trim());
+                    let trimmed_comment = comment.trim_start_matches("//").trim();
+                    if trimmed_comment.is_empty() {
+                        writer.push_str("//");
+                    } else {
+                        writer.push_str("// ");
+                        writer.push_str(trimmed_comment);
+                    }
                 }
                 false => writer.push_str(comment),
             }
