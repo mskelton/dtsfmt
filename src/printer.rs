@@ -24,8 +24,9 @@ fn traverse(
     ctx: &Context,
 ) {
     let node = cursor.node();
+    let kind = node.kind();
 
-    match node.kind() {
+    match kind {
         "file_version" => {
             writer.push_str(&format!("{}\n\n", get_text(source, cursor)));
         }
@@ -45,7 +46,8 @@ fn traverse(
             // lot tougher to format properly.
             match comment.starts_with("//") {
                 true => {
-                    let trimmed_comment = comment.trim_start_matches("//").trim();
+                    let trimmed_comment =
+                        comment.trim_start_matches("//").trim();
                     if trimmed_comment.is_empty() {
                         writer.push_str("//");
                     } else {
@@ -180,7 +182,7 @@ fn traverse(
         }
         // This is a general handler for any type that just needs to traverse
         // its children.
-        "node" | "property" => {
+        "node" | "property" | "delete_node" | "delete_property" => {
             // A node will typically have children in a format of:
             // [<identifier>:] [&]<identifier> { [nodes and properties] }
             cursor.goto_first_child();
@@ -303,6 +305,9 @@ fn traverse(
         }
         "=" => {
             writer.push_str(" = ");
+        }
+        "/delete-node/" | "/delete-property/" => {
+            writer.push_str(&format!("{} ", kind));
         }
         _ => {
             if ctx.config.warn_on_unhandled_tokens {
