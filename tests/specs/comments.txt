@@ -30,3 +30,41 @@
 [expect]
 // Layers
 #define DEFAULT 0
+
+== comments inside nodes can be formatted ==
+/ {
+  device { // comment1
+    compatible = "device";
+         // comment2
+    property;
+  };
+};
+
+[expect]
+/ {
+  device {
+    // comment1
+    compatible = "device";
+
+    // comment2
+    property;
+  };
+};
+
+== no empty lines between { and comments ==
+/ {
+  device {
+    
+    
+        // comment
+    compatible = "device";
+  };
+};
+
+[expect]
+/ {
+  device {
+    // comment
+    compatible = "device";
+  };
+};

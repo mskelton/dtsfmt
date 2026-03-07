@@ -7,12 +7,7 @@ use crate::context::Context;
 use crate::layouts;
 use crate::parser::parse;
 use crate::utils::{
-    get_text,
-    lookahead,
-    lookbehind,
-    pad_right,
-    print_indent,
-    sep,
+    get_text, lookahead, lookbehind, pad_right, print_indent, sep,
 };
 
 fn is_preproc(n: &tree_sitter::Node) -> bool {
@@ -36,8 +31,10 @@ fn traverse(
         }
         "comment" => {
             // Add a newline before the comment if the previous node is not a
-            // comment
-            if lookbehind(cursor).is_some_and(|n| n.kind() != "comment") {
+            // comment nor a '{'.
+            if lookbehind(cursor)
+                .is_some_and(|n| n.kind() != "comment" && n.kind() != "{")
+            {
                 sep(writer);
             }
 
