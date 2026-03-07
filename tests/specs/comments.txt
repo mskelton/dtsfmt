@@ -6,6 +6,22 @@
 // foo
 // bar
 
+== should trim redundant whitespaces ==
+//no prefix/suffix spaces
+//   both prefix and suffix spaces  
+//     prefix spaces only
+//	
+//    	
+//
+
+[expect]
+// no prefix/suffix spaces
+// both prefix and suffix spaces
+// prefix spaces only
+//
+//
+//
+
 == should re-align with code ==
 // Layers
 
