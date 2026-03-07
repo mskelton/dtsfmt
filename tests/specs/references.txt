@@ -1,0 +1,28 @@
+== label reference is formatted ==
+& node {
+  child {
+    compatible = "node-child";
+  };
+};
+
+[expect]
+&node {
+  child {
+    compatible = "node-child";
+  };
+};
+
+== node reference is formatted ==
+&{ /path/to/node
+} {
+	child {
+    compatible = "node-child";
+  };
+};
+
+[expect]
+&{/path/to/node} {
+  child {
+    compatible = "node-child";
+  };
+};
