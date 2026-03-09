@@ -40,7 +40,10 @@ impl Config {
 }
 
 fn find_rc_file(path: &Path) -> Option<PathBuf> {
-    let mut path: PathBuf = path.into();
+    let mut path: PathBuf = std::path::absolute(path).unwrap_or_else(|_| {
+        eprintln!("Failed to get absolute path, fallback to original path");
+        path.to_path_buf()
+    });
     let file = Path::new(constants::RC_FILENAME);
 
     // Remove filename if it exists. This happens if the user specifies a path
