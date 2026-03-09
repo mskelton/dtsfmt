@@ -39,13 +39,18 @@ indent_str = "  " # Optional, used for each indent level when printing.
 ```
 
 ```toml
-layout = "kinesis:adv360" # Required
+layout = "kinesis:adv360" # Optional
+# Keyboard layout, only used for Zephyr keymaps.
+# 
 # Available options are ["kinesis:adv360", "sweep", "moergo:glove80", "imprint:letters_only_full_bottom_row"]
+# Default to "kinesis:adv360".
 ```
 
 ```toml
 warn_on_unhandled_tokens = false # Optional
 # Used to check if an input file contains any tokens not handled by the parser/printer.
+#
+# Default to false.
 ```
 
 ## Ignoring code
