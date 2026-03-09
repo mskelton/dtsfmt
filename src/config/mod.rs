@@ -8,7 +8,7 @@ use crate::layouts::KeyboardLayoutType;
 
 mod constants;
 
-#[derive(Default, Deserialize, TypedBuilder)]
+#[derive(Deserialize, TypedBuilder)]
 pub struct Config {
     #[builder(default)]
     #[serde(default)]
@@ -21,6 +21,12 @@ pub struct Config {
     #[builder(default)]
     #[serde(default)]
     pub warn_on_unhandled_tokens: bool,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self::builder().build()
+    }
 }
 
 impl Config {
