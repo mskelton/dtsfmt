@@ -219,6 +219,17 @@ fn traverse(
             {
                 writer.push('\n');
             }
+
+            // Place a newline before node siblings if they follow a node.
+            //
+            // The `n != node` check is to prevent adding a newline before the
+            // last node.
+            if node.kind() == "node"
+                && lookahead(cursor)
+                    .is_some_and(|n| n.kind() == "node" && n != node)
+            {
+                writer.push('\n');
+            }
         }
         "byte_string_literal" => {
             let hex_string = get_text(source, cursor);

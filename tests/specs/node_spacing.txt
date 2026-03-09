@@ -1,0 +1,33 @@
+== empty line between nodes ==
+node1@1000 {
+  compatible = "dtsfmt";
+};
+node2@2000 {
+  compatible = "dtsfmt";
+};
+
+[expect]
+node1@1000 {
+  compatible = "dtsfmt";
+};
+
+node2@2000 {
+  compatible = "dtsfmt";
+};
+
+== empty line between nodes and properties ==
+node1@1000 {
+  compatible = "dtsfmt";
+  child@1000 {
+    compatible = "child";
+  };
+};
+
+[expect]
+node1@1000 {
+  compatible = "dtsfmt";
+
+  child@1000 {
+    compatible = "child";
+  };
+};
