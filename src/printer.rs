@@ -266,25 +266,50 @@ fn traverse(
                 return;
             }
 
-            writer.push('<');
-            let mut first = true;
+            let mut cells: Vec<&str> = Vec::new();
 
             while cursor.goto_next_sibling() {
                 match cursor.node().kind() {
                     ">" => break,
-                    _ => {
-                        if first {
-                            first = false;
-                        } else {
-                            writer.push(' ');
-                        }
-
-                        writer.push_str(get_text(source, cursor));
-                    }
+                    _ => cells.push(get_text(source, cursor)),
                 }
             }
 
-            writer.push('>');
+            let threshold = ctx.config.array_wrap_threshold;
+            let per_line = ctx.config.array_cells_per_line;
+
+            if threshold > 0 && per_line > 0 && cells.len() > threshold {
+                writer.push_str("<\n");
+
+                for (i, cell) in cells.iter().enumerate() {
+                    if i % per_line == 0 {
+                        print_indent(writer, ctx);
+                    }
+
+                    if i + 1 == cells.len() {
+                        writer.push_str(&format!("{}\n", cell));
+                    } else if (i + 1) % per_line == 0 {
+                        writer.push_str(&format!("{}\n", cell));
+                    } else {
+                        writer.push_str(&format!("{} ", cell));
+                    }
+                }
+
+                print_indent(writer, &ctx.dec(1));
+                writer.push('>');
+            } else {
+                writer.push('<');
+
+                for (i, cell) in cells.iter().enumerate() {
+                    if i > 0 {
+                        writer.push(' ');
+                    }
+                    writer.push_str(cell);
+                }
+
+                writer.push('>');
+            }
+
             cursor.goto_parent();
         }
         // All the non-named grammatical tokens that are emitted but handled

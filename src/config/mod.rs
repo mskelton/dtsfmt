@@ -21,6 +21,17 @@ pub struct Config {
     #[builder(default)]
     #[serde(default)]
     pub warn_on_unhandled_tokens: bool,
+
+    /// Number of cells beyond which `<...>` arrays wrap onto multiple
+    /// lines. Zero disables wrapping.
+    #[builder(default_code = "Config::default_array_wrap_threshold()")]
+    #[serde(default = "Config::default_array_wrap_threshold")]
+    pub array_wrap_threshold: usize,
+
+    /// Cells per line for wrapped `<...>` arrays.
+    #[builder(default_code = "Config::default_array_cells_per_line()")]
+    #[serde(default = "Config::default_array_cells_per_line")]
+    pub array_cells_per_line: usize,
 }
 
 impl Default for Config {
@@ -42,6 +53,14 @@ impl Config {
 
     pub fn default_indent_str() -> String {
         "  ".to_owned()
+    }
+
+    pub fn default_array_wrap_threshold() -> usize {
+        0
+    }
+
+    pub fn default_array_cells_per_line() -> usize {
+        8
     }
 }
 
