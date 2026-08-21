@@ -31,6 +31,20 @@ fn traverse(
             writer.push_str(&format!("{}\n\n", get_text(source, cursor)));
         }
         "comment" => {
+            // A comment inside a property value array stays inline when the
+            // next sibling is the separator; re-indenting it would break the
+            // value across lines. Line comments cannot stay inline since
+            // they comment out the rest of the line, so they always keep
+            // their own line.
+            if !get_text(source, cursor).starts_with("//")
+                && (lookahead(cursor).is_some_and(|n| n.kind() == ",")
+                    || lookahead(cursor).is_some_and(|n| n.kind() == ";"))
+            {
+                let comment = get_text(source, cursor).trim_end();
+                writer.push_str(&format!(" {}", comment));
+                return;
+            }
+
             // Add a newline before the comment if the previous node is not a
             // comment nor a '{'.
             if lookbehind(cursor)
@@ -204,6 +218,19 @@ fn traverse(
             };
 
             loop {
+                // Value elements that follow a line comment inside a
+                // property start a new line and need an explicit indent.
+                // Properties and nodes self-indent, so this only applies
+                // while traversing property children.
+                if node.kind() == "property"
+                    && !matches!(cursor.node().kind(), "comment" | "," | ";")
+                    && cursor
+                        .node()
+                        .prev_sibling()
+                        .is_some_and(|n| n.kind() == "comment")
+                {
+                    print_indent(writer, &ctx);
+                }
                 traverse(writer, source, cursor, &ctx);
                 if !cursor.goto_next_sibling() {
                     break;
@@ -312,7 +339,12 @@ fn traverse(
             writer.push_str(";\n");
         }
         "," => {
-            writer.push_str(", ");
+            // No trailing space when a line comment follows, so the comment
+            // starts the next line cleanly.
+            writer.push_str(match lookahead(cursor).map(|n| n.kind()) {
+                Some("comment") => ",",
+                _ => ", ",
+            });
         }
         "=" => {
             writer.push_str(" = ");

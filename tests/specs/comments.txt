@@ -68,3 +68,35 @@
     compatible = "device";
   };
 };
+
+== block comments in value arrays stay inline ==
+/ {
+  node {
+    array = <1 2 3> /* c1 */, "str" /* c2 */, <4 5> /* c3 */;
+  };
+};
+
+[expect]
+/ {
+  node {
+    array = <1 2 3> /* c1 */, "str" /* c2 */, <4 5> /* c3 */;
+  };
+};
+
+== line comment in value array keeps its own line ==
+/ {
+  node {
+    array = <1 2 3> /* c1 */, "str" /* c2 */,
+            // note
+            <4 5>;
+  };
+};
+
+[expect]
+/ {
+  node {
+    array = <1 2 3> /* c1 */, "str" /* c2 */,
+      // note
+      <4 5>;
+  };
+};
