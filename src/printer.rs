@@ -28,6 +28,11 @@ fn traverse(
 
     match kind {
         "file_version" | "plugin" => {
+            // A comment directly before /dts-v1/; or /plugin/; is a file
+            // header block; keep a blank line between header and directive.
+            if lookbehind(cursor).is_some_and(|n| n.kind() == "comment") {
+                writer.push('\n');
+            }
             writer.push_str(&format!("{}\n\n", get_text(source, cursor)));
         }
         "comment" => {

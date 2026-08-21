@@ -15,3 +15,38 @@
   compatible = "dtsfmt devices";
   #size-cells = <0x02>;
 };
+
+== blank line between header comment and dts-v1 ==
+/*
+ * Board file
+ */
+/dts-v1/;
+
+/ {
+  model = "x";
+};
+
+[expect]
+/*
+ * Board file
+ */
+
+/dts-v1/;
+
+/ {
+  model = "x";
+};
+
+== no blank line added without header comment ==
+/dts-v1/;
+
+/ {
+  model = "x";
+};
+
+[expect]
+/dts-v1/;
+
+/ {
+  model = "x";
+};
