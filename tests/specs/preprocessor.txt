@@ -190,3 +190,18 @@ dm: dual_mod_key {
     compatible = "zmk,behavior-hold-tap";
   };
 };
+
+== line directives pass through verbatim ==
+/dts-v1/;
+#line 3 "foo.dts"
+/ {
+  model = "x";
+};
+
+[expect]
+/dts-v1/;
+
+#line 3 "foo.dts"
+/ {
+  model = "x";
+};
