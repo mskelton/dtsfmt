@@ -22,3 +22,20 @@
 
 / {
 };
+
+== include directives do not crash ==
+/include/ "foo.dtsi"
+/dts-v1/;
+
+/ {
+  model = "x";
+};
+
+[expect]
+/include/ "foo.dtsi"
+
+/dts-v1/;
+
+/ {
+  model = "x";
+};

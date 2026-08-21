@@ -321,6 +321,15 @@ fn traverse(
             writer.push_str(&format!("{} ", kind));
         }
         _ => {
+            // ERROR nodes (e.g. #line directives the grammar has no rule
+            // for) are emitted verbatim; traversing their children would
+            // mangle the source text.
+            if node.is_error() {
+                print_indent(writer, ctx);
+                writer.push_str(&format!("{}\n", get_text(source, cursor)));
+                return;
+            }
+
             if ctx.config.warn_on_unhandled_tokens {
                 eprintln!(
                     "unhandled type '{}' ({} {}): {}",
