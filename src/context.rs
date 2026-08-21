@@ -13,7 +13,7 @@ impl Context<'_> {
     }
 
     pub fn dec(&self, decrement: usize) -> Self {
-        Self { indent: self.indent - decrement, ..*self }
+        Self { indent: self.indent.saturating_sub(decrement), ..*self }
     }
 
     pub fn keymap(&self) -> Self {
