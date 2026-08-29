@@ -208,6 +208,23 @@ fn traverse(
                 _ => ctx,
             };
 
+            // A heuristic to determine whether to add a newline after array
+            // elements. If the node is larger than this threshold, we add a
+            // newline after array elements.
+            //
+            // TODO: This heuristic is a rough estimate of the line's byte size
+            // if it were to be printed on a single line; it's based on the
+            // unformatted source string and it doesn't take the current
+            // indentation into account.
+            //
+            // We should consider using a more accurate method to determine
+            // whether to split lines.
+            const NODE_BYTE_SIZE_THRESHOLD_TO_SPLIT_LINES: usize = 120;
+            let node_bytes = node.end_byte() - node.start_byte();
+            let ctx = ctx.new_line_after_comma(
+                node_bytes > NODE_BYTE_SIZE_THRESHOLD_TO_SPLIT_LINES,
+            );
+
             loop {
                 traverse(writer, source, cursor, &ctx);
                 if !cursor.goto_next_sibling() {
@@ -342,7 +359,13 @@ fn traverse(
             writer.push_str(";\n");
         }
         "," => {
-            writer.push_str(", ");
+            writer.push_str(",");
+            if ctx.new_line_after_comma {
+                writer.push('\n');
+                print_indent(writer, ctx);
+            } else {
+                writer.push(' ');
+            }
         }
         "=" => {
             writer.push_str(" = ");
@@ -494,8 +517,13 @@ pub fn print(source: &String, config: &Config) -> String {
     let tree = parse(source.clone());
     let mut cursor = tree.walk();
 
-    let ctx =
-        Context { indent: 0, bindings: false, keymap: false, config: config };
+    let ctx = Context {
+        indent: 0,
+        bindings: false,
+        keymap: false,
+        new_line_after_comma: false,
+        config: config,
+    };
 
     // The first node is the root document node, so we have to traverse all it's
     // children with the same indentation level.

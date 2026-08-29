@@ -4,6 +4,10 @@ pub struct Context<'a> {
     pub indent: usize,
     pub keymap: bool,
     pub bindings: bool,
+
+    // True iff a new line should be added after comma separated elements,
+    // such as a node's property value array.
+    pub new_line_after_comma: bool,
     pub config: &'a Config,
 }
 
@@ -22,6 +26,10 @@ impl Context<'_> {
 
     pub fn bindings(&self) -> Self {
         Self { bindings: true, ..*self }
+    }
+
+    pub fn new_line_after_comma(&self, value: bool) -> Self {
+        Self { new_line_after_comma: value, ..*self }
     }
 
     // If a node named 'bindings' has a parent node named 'keymap' then we've
